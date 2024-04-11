@@ -1,8 +1,5 @@
 #pragma once
 
-#include <fstream>
-#include <sstream>
-
 #include "util.h"
 
 class Program {
@@ -57,25 +54,30 @@ class Program {
         }
     }
 
-    ~Program() { glDeleteProgram(program); }
+    Program(std::string vertex_shader_path, std::string geometry_shader_path,
+            std::string fragment_shader_path) {
+        unsigned int vertex_shader =
+            compile_shader(vertex_shader_path, GL_VERTEX_SHADER);
+        unsigned int geometry_shader =
+            compile_shader(geometry_shader_path, GL_GEOMETRY_SHADER);
+        unsigned int fragment_shader =
+            compile_shader(fragment_shader_path, GL_FRAGMENT_SHADER);
 
-    // Program(Shader vertexShader, Shader fragmentShader, Shader
-    // geometryShader) {
-    //     program = glCreateProgram();
-    //     glAttachShader(program, vertexShader.get());
-    //     glAttachShader(program, fragmentShader.get());
-    //     glAttachShader(program, geometryShader.get());
-    //     glLinkProgram(program);
+        program = glCreateProgram();
+        glAttachShader(program, vertex_shader);
+        glAttachShader(program, geometry_shader);
+        glAttachShader(program, fragment_shader);
+        glLinkProgram(program);
 
-    //     int success;
-    //     char infoLog[512];
-    //     glGetProgramiv(program, GL_LINK_STATUS, &success);
-    //     if (!success) {
-    //         glGetProgramInfoLog(program, 512, NULL, infoLog);
-    //         std::cout << "ERROR::SHADER::PROGRAM::LINK_FAILED\n"
-    //                   << infoLog << std::endl;
-    //     }
-    // }
+        int success;
+        char infoLog[512];
+        glGetProgramiv(program, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(program, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::PROGRAM::LINK_FAILED\n"
+                      << infoLog << std::endl;
+        }
+    }
 
     // Program(Shader computeShader) {
     //     program = glCreateProgram();
@@ -92,32 +94,39 @@ class Program {
     //     }
     // }
 
+    ~Program() { glDeleteProgram(program); }
+
     void use() { glUseProgram(program); }
 
-    // void set_uniform(std::string name, int i) {
-    //     int location = glGetUniformLocation(program, name.c_str());
-    //     glUniform1i(location, i);
-    // }
+    void set_uniform(std::string name, int i) {
+        int location = glGetUniformLocation(program, name.c_str());
+        glUniform1i(location, i);
+    }
 
-    // void set_uniform(std::string name, float f) {
-    //     int location = glGetUniformLocation(program, name.c_str());
-    //     glUniform1f(location, f);
-    // }
+    void set_uniform(std::string name, float f) {
+        int location = glGetUniformLocation(program, name.c_str());
+        glUniform1f(location, f);
+    }
 
-    // void set_uniform(std::string name, glm::vec2 v) {
-    //     int location = glGetUniformLocation(program, name.c_str());
-    //     glUniform2f(location, v.x, v.y);
-    // }
+    void set_uniform(std::string name, glm::vec2 v) {
+        int location = glGetUniformLocation(program, name.c_str());
+        glUniform2f(location, v.x, v.y);
+    }
+
+    void set_uniform(std::string name, glm::ivec2 v) {
+        int location = glGetUniformLocation(program, name.c_str());
+        glUniform2i(location, v.x, v.y);
+    }
 
     void set_uniform(std::string name, glm::vec4 v) {
         int location = glGetUniformLocation(program, name.c_str());
         glUniform4f(location, v.x, v.y, v.z, v.w);
     }
 
-    // void set_uniform(std::string name, glm::mat4 m) {
-    //     int location = glGetUniformLocation(program, name.c_str());
-    //     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(m));
-    // }
+    void set_uniform(std::string name, glm::mat4 m) {
+        int location = glGetUniformLocation(program, name.c_str());
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(m));
+    }
 
     unsigned int get() { return program; }
 };

@@ -25,7 +25,7 @@ class WindowContext {
 #endif
 
         // Create a GLFW window object
-        window = glfwCreateWindow(1000, 1000, "Particles", NULL, NULL);
+        window = glfwCreateWindow(1100, 1100, "Particles", NULL, NULL);
         if (window == NULL) {
             std::cout << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
@@ -41,7 +41,7 @@ class WindowContext {
         }
 
         // Tell OpenGL the size of the rendering window
-        glViewport(0, 0, 1000, 1000);
+        glViewport(0, 0, 1100, 1100);
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
         // Setup imgui
@@ -52,6 +52,11 @@ class WindowContext {
             ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |=
             ImGuiConfigFlags_DockingEnable;  // IF using Docking Branch
+        io.ConfigDockingWithShift = true;    // IF using Docking Branch
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        // ImGui::StyleColorsLight();
 
         // Setup Platform/Renderer backends
         ImGui_ImplGlfw_InitForOpenGL(
@@ -59,6 +64,8 @@ class WindowContext {
             true);  // Second param install_callback=true will install
                     // GLFW callbacks and chain to existing ones.
         ImGui_ImplOpenGL3_Init();
+
+        srand(time(NULL));
     }
 
     void set_framebuffer_size_callback(GLFWframebuffersizefun callback) {
@@ -66,8 +73,8 @@ class WindowContext {
     }
 
     ~WindowContext() {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
+        // ImGui_ImplGlfw_Shutdown();
+        // ImGui_ImplOpenGL3_Shutdown();
         ImGui::DestroyContext();
         glfwTerminate();
     }
@@ -101,4 +108,6 @@ class WindowContext {
     void get_cursor_pos(double* xpos, double* ypos) {
         glfwGetCursorPos(window, xpos, ypos);
     }
+
+    double get_time() { return glfwGetTime(); }
 };

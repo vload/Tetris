@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(
     GL3
-    VERSION 0.0.1
+    VERSION 0.0.1.1
     DESCRIPTION "The GL trials continue onwards")
     
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 
 # Set the path to dependencies folders
 set(GLFW ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glfw)

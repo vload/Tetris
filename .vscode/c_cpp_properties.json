@@ -8,7 +8,8 @@
                 "${workspaceFolder}/dependencies/glad/include",
                 "${workspaceFolder}/dependencies/glfw/include",
                 "${workspaceFolder}/dependencies/glm",
-                "${workspaceFolder}/dependencies/imgui"
+                "${workspaceFolder}/dependencies/imgui",
+                "${workspaceFolder}/dependencies/glad/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -18,7 +19,7 @@
             "windowsSdkVersion": "10.0.22621.0",
             "compilerPath": "cl.exe",
             "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cppStandard": "c++20",
             "intelliSenseMode": "windows-msvc-x64",
             "configurationProvider": "ms-vscode.cmake-tools"
         }

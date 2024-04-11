@@ -1,4 +1,13 @@
-show one square
+show one square ✅
+show multiple squares ✅
+pieces move ✅
+generate walls ✅
+compute collisions ✅
+create tetrominos ✅
+slide them ✅
+
+rotation
+
 ...
 tetris
 
@@ -9,3 +18,5 @@ dynamic score
 levels + speed up
 
 save & load
+
+improve square drawing
