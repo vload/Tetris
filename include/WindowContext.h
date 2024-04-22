@@ -6,14 +6,21 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+static void glfw_error_callback(int error, const char* description) {
+    fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+    throw std::runtime_error(description);
+}
+
 class WindowContext {
    private:
     GLFWwindow* window;
 
    public:
     WindowContext() {
+        glfwSetErrorCallback(glfw_error_callback);
+        
         // Initialize GLFW
-        glfwInit();
+        if (!glfwInit()) throw std::runtime_error("Failed to initialize GLFW");
 
         // Tell GLFW what version of OpenGL we are using
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -52,11 +59,10 @@ class WindowContext {
             ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |=
             ImGuiConfigFlags_DockingEnable;  // IF using Docking Branch
-        io.ConfigDockingWithShift = true;    // IF using Docking Branch
+        // io.ConfigDockingWithShift = true;    // IF using Docking Branch
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
-        // ImGui::StyleColorsLight();
 
         // Setup Platform/Renderer backends
         ImGui_ImplGlfw_InitForOpenGL(
@@ -65,7 +71,7 @@ class WindowContext {
                     // GLFW callbacks and chain to existing ones.
         ImGui_ImplOpenGL3_Init();
 
-        srand(time(NULL));
+        srand(static_cast<unsigned int>(time(NULL)));
     }
 
     void set_framebuffer_size_callback(GLFWframebuffersizefun callback) {
@@ -73,9 +79,11 @@ class WindowContext {
     }
 
     ~WindowContext() {
-        // ImGui_ImplGlfw_Shutdown();
-        // ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+
+        glfwDestroyWindow(window);
         glfwTerminate();
     }
 

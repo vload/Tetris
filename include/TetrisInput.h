@@ -3,7 +3,7 @@
 #include "Input.h"
 
 // TETRIS_KEYS = {UP, DOWN, LEFT, RIGHT} enum
-constexpr enum TetrisKeys {
+constexpr enum TetrisDirections {
     UP = 0,
     DOWN = 1,
     LEFT = 2,
@@ -20,13 +20,13 @@ constexpr int TetrisKeyNamesGLFW[] = {
 
 class TetrisInput : public Input {
    private:
-    bool keys[TetrisKeys::_COUNT] = {false, false, false, false};
+    bool keys[TetrisDirections::_COUNT] = {false, false, false, false};
 
    public:
     TetrisInput(WindowContext& window) : Input(window) {}
 
     void process() {
-        for (int i = 0; i < TetrisKeys::_COUNT; i++) {
+        for (int i = 0; i < TetrisDirections::_COUNT; i++) {
             keys[i] |= is_key_pressed(TetrisKeyNamesGLFW[i]);
         }
 
@@ -37,7 +37,7 @@ class TetrisInput : public Input {
     bool const * const get_state() { return keys; }
 
     void reset_state() {
-        for (int i = 0; i < TetrisKeys::_COUNT; i++) {
+        for (int i = 0; i < TetrisDirections::_COUNT; i++) {
             keys[i] = false;
         }
     }

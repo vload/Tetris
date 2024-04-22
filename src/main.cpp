@@ -1,9 +1,9 @@
 #include <iostream>  // for debugging purposes
 
+#include "Input.h"
 #include "Program.h"
 #include "Tetris.h"
 #include "WindowContext.h"
-#include "Input.h"
 #include "util.h"
 
 int main() {
@@ -33,47 +33,53 @@ int main() {
     // -------------------
     int grid_size = 200;
     int grid_step = 50;
-    float tick_duration = 1.0f / 20.0f;
-    double last_tick = floor(window.get_time() / tick_duration);
     Tetris tetris = Tetris(input);
+    double current_time = window.get_time();
 
     // Render and game loop
     // --------------------
     while (!window.should_close()) {
-        // Game logic
-        // ---------------------------------------------------------------------
-        double current_tick = floor(window.get_time() / tick_duration);
+        // check and call events
+        glfwPollEvents();
 
-        // simulate game logic for missing ticks
-        while (last_tick < current_tick) {
-            tetris.do_tick();
-            last_tick += 1.0;
-        }
-
-        // Rendering
-        // ---------------------------------------------------------------------
         // ImGui new frame
+        // ---------------------------------------------------------------------
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         // imgui menu
         ImGui::SliderInt("grid step", &grid_step, 0, 100, "%d px");
-        ImGui::SliderFloat("tick duration", &tick_duration, 0.005f, 0.2f,
-                           "%.3f s");
-        if(tetris.is_game_over()) {
+        constexpr double ONE = 1.0;
+        constexpr double ZERO = 0.0;
+        ImGui::SliderScalar("key repeat delay", ImGuiDataType_Double,
+                            &key_repeat_delay, &ZERO, &ONE, "%.3f s");
+        ImGui::SliderScalar("fall delay", ImGuiDataType_Double, &fall_delay,
+                            &ZERO, &ONE, "%.3f s");
+        if(ImGui::Button("New Game"))
+        {
+            tetris = Tetris(input);
+        }
+        if (tetris.is_game_over()) {
             ImGui::Text("Game Over!");
         }
         // ImGui::SliderInt("grid size", &grid_size, 0, 1000, "%d squares");
         // ImGui::ShowDemoWindow();
         // ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-        // input
+        /// Input
+        // ---------------------------------------------------------------------
         input.process();
 
-        // render
-        // ------
+        // Game logic
+        // ---------------------------------------------------------------------
+        double previous_time = current_time;
+        current_time = window.get_time();
 
+        tetris.update(current_time - previous_time);
+
+        // Rendering
+        // ---------------------------------------------------------------------
         // Compute the number of grid cells in each axis
         float gridWidth = (float)window.get_width() / grid_step;
         float gridHeight = (float)window.get_height() / grid_step;
@@ -100,9 +106,8 @@ int main() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // check and call events and swap the buffers
+        // swap the buffers
         window.swap_buffers();
-        glfwPollEvents();
     }
 
     glDeleteVertexArrays(1, &VAO);

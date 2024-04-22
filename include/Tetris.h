@@ -3,6 +3,10 @@
 #include "TetrisInput.h"
 #include "util.h"
 
+// settings
+double key_repeat_delay = 0.2;
+double fall_delay = 0.5;
+
 struct square {
     glm::ivec2 position;
     glm::vec4 color;
@@ -62,12 +66,12 @@ constexpr square tetrominos[][4] = {
 
 class Tetris {
    private:
-    long tick_count = 0;
     // active_tetromino is the last 4 elements of squares
     std::vector<square> squares;
     bool is_tetromino_active = false;
     bool game_over = false;
     TetrisInput input;
+    double time_since_last_move[TetrisDirections::_COUNT] = {0};
 
    public:
     Tetris(TetrisInput& input) : input(input) {
@@ -100,7 +104,7 @@ class Tetris {
         return true;
     }
 
-    void do_tick() {
+    void update(double delta_t) {
         // generate new tetromino if necessary
         if (!is_tetromino_active) {
             int tetromino_index = random_int(0, 6);
@@ -114,12 +118,15 @@ class Tetris {
                 squares.push_back(tetrominos[tetromino_index][i]);
 
             is_tetromino_active = true;
+
+            time_since_last_move[TetrisDirections::UP] = 0;
+            time_since_last_move[TetrisDirections::DOWN] = 0;
+            time_since_last_move[TetrisDirections::LEFT] = 0;
+            time_since_last_move[TetrisDirections::RIGHT] = 0;
         }
 
-        auto key_pressed = input.get_state();
-
-        // process rotation when pressing up
-        if (input.is_key_pressed(GLFW_KEY_UP)) {
+        if (input.is_key_pressed(GLFW_KEY_UP) &&
+            time_since_last_move[TetrisDirections::UP] > key_repeat_delay) {
             square sq[4];
             for (int i = 0; i < 4; i++) {
                 sq[i].position = squares[squares.size() - 4 + i].position;
@@ -141,18 +148,26 @@ class Tetris {
                     squares[squares.size() - 4 + i].position = sq[i].position;
                 }
             }
+
+            time_since_last_move[TetrisDirections::UP] = 0;
         }
 
         // process input (down, left, right(check spot) space?)
         glm::ivec2 move(0, 0);
-        if (input.is_key_pressed(GLFW_KEY_LEFT)) {
+        if (input.is_key_pressed(GLFW_KEY_LEFT) &&
+            time_since_last_move[TetrisDirections::LEFT] > key_repeat_delay) {
             move.x += -1;
+            time_since_last_move[TetrisDirections::LEFT] = 0;
         }
-        if (input.is_key_pressed(GLFW_KEY_RIGHT)) {
+        if (input.is_key_pressed(GLFW_KEY_RIGHT) &&
+            time_since_last_move[TetrisDirections::RIGHT] > key_repeat_delay) {
             move.x += 1;
+            time_since_last_move[TetrisDirections::RIGHT] = 0;
         }
-        if (input.is_key_pressed(GLFW_KEY_DOWN)) {
+        if (input.is_key_pressed(GLFW_KEY_DOWN) &&
+            time_since_last_move[TetrisDirections::DOWN] > key_repeat_delay) {
             move.y += 1;
+            time_since_last_move[TetrisDirections::DOWN] = 0;
         }
 
         // check if tetromino can move to new spot and move it
@@ -164,7 +179,7 @@ class Tetris {
 
         // check if tetromino can not move down (every n ticks), move it and
         // deactivate it
-        if (tick_count % 30 == 0) {
+        if (time_since_last_move[TetrisDirections::DOWN] > fall_delay) {
             if (can_move_to(&squares[squares.size() - 4], glm::ivec2(0, 1))) {
                 for (int i = 0; i < 4; i++) {
                     squares[squares.size() - 4 + i].position.y += 1;
@@ -172,6 +187,8 @@ class Tetris {
             } else {
                 is_tetromino_active = false;
             }
+
+            time_since_last_move[TetrisDirections::DOWN] = 0;
         }
 
         // clear lines if necessary
@@ -188,7 +205,8 @@ class Tetris {
             // remove full lines
             std::erase_if(squares, [&](square s) {
                 return s.position.x > 1 && s.position.x < 12 &&
-                       s.position.y < 20 && count_per_line[s.position.y] == 10;
+                       s.position.y > 0 && s.position.y < 20 &&
+                       count_per_line[s.position.y] == 10;
             });
 
             // calculate how many lines to move the lines down by
@@ -208,7 +226,10 @@ class Tetris {
             }
         }
 
-        tick_count++;
+        time_since_last_move[TetrisDirections::UP] += delta_t;
+        time_since_last_move[TetrisDirections::DOWN] += delta_t;
+        time_since_last_move[TetrisDirections::LEFT] += delta_t;
+        time_since_last_move[TetrisDirections::RIGHT] += delta_t;
     }
 
     size_t size() { return squares.size(); }

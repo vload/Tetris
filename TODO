@@ -5,11 +5,13 @@ generate walls ✅
 compute collisions ✅
 create tetrominos ✅
 slide them ✅
+rotation ✅
+tetris ✅
 
-rotation
-
+better input (with delay instead of ticks)
+fix delay on bottom().
+better rotation (store all rotations and position).
 ...
-tetris
 
 score
 
