@@ -11,6 +11,9 @@ tetris ✅
 better input (with delay instead of ticks)
 fix delay on bottom().
 better rotation (store all rotations and position).
+bumping
+
+copy data only when changed!
 ...
 
 score
@@ -22,3 +25,5 @@ levels + speed up
 save & load
 
 improve square drawing
+
+WHY DOES SQUARE.POSITION WORK WITH FLOAT AND NOT INT???

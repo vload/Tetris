@@ -8,7 +8,7 @@ double key_repeat_delay = 0.2;
 double fall_delay = 0.5;
 
 struct square {
-    glm::ivec2 position;
+    glm::vec2 position;
     glm::vec4 color;
 };
 
@@ -91,7 +91,7 @@ class Tetris {
 
     bool is_game_over() { return game_over; }
 
-    bool can_move_to(const square sq[4], glm::ivec2 delta = glm::ivec2(0, 0)) {
+    bool can_move_to(const square sq[4], glm::vec2 delta = glm::vec2(0, 0)) {
         size_t last =
             (is_tetromino_active) ? squares.size() - 4 : squares.size();
         for (int j = 0; j < last; j++) {
@@ -134,12 +134,12 @@ class Tetris {
             }
 
             // calculate center of rotation
-            glm::ivec2 center = sq[0].position;
+            glm::vec2 center = sq[0].position;
 
             // rotate around center
             for (int i = 0; i < 4; i++) {
-                glm::ivec2 delta = sq[i].position - center;
-                sq[i].position = center + glm::ivec2(-delta.y, delta.x);
+                glm::vec2 delta = sq[i].position - center;
+                sq[i].position = center + glm::vec2(-delta.y, delta.x);
             }
 
             // check if tetromino can move to new spot and move it
@@ -198,7 +198,7 @@ class Tetris {
             for (int j = 0; j < squares.size(); j++) {
                 if (squares[j].position.x > 1 && squares[j].position.x < 12 &&
                     squares[j].position.y >= 0 && squares[j].position.y < 20) {
-                    count_per_line[squares[j].position.y]++;
+                    count_per_line[(int)squares[j].position.y]++;
                 }
             }
 
@@ -206,7 +206,7 @@ class Tetris {
             std::erase_if(squares, [&](square s) {
                 return s.position.x > 1 && s.position.x < 12 &&
                        s.position.y > 0 && s.position.y < 20 &&
-                       count_per_line[s.position.y] == 10;
+                       count_per_line[(int)s.position.y] == 10;
             });
 
             // calculate how many lines to move the lines down by
@@ -221,7 +221,7 @@ class Tetris {
                 if (squares[i].position.x > 1 && squares[i].position.x < 12 &&
                     squares[i].position.y < 20) {
                     squares[i].position.y +=
-                        move_line_down_by[squares[i].position.y];
+                        move_line_down_by[(int)squares[i].position.y];
                 }
             }
         }

@@ -42,7 +42,12 @@ target_sources(main PUBLIC ${IMGUI_HEADERS})
 target_sources(main PUBLIC ${IMGUI_SOURCES})
 include_directories(${IMGUI})
 
-# Copy shaders to the place where the executable is (cmake wizardry)
+## Copy shaders to the place where the executable is (cmake wizardry)
+# Delete the old shaders folder
+add_custom_command(TARGET main POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+    $<TARGET_FILE_DIR:main>/shaders)
+# Copy the shaders folder
 add_custom_command(TARGET main POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:main>/shaders)
