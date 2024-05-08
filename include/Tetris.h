@@ -4,7 +4,6 @@
 #include "util.h"
 
 // settings
-double key_repeat_delay = 0.2;
 double fall_delay = 0.5;
 
 struct square {
@@ -70,12 +69,17 @@ class Tetris {
     std::vector<square> squares;
     bool is_tetromino_active = false;
     bool game_over = false;
-    TetrisInput input;
-    double time_since_last_move[TetrisDirections::_COUNT] = {0};
+    TetrisInput& input;
+    double time_of_last_move_down = 0;
 
    public:
     Tetris(TetrisInput& input) : input(input) {
         squares = std::vector<square>();
+        new_game();
+    }
+
+    void new_game(){
+        squares.clear();
         // put up walls
         for (int i = -5; i < 20; i++) {
             squares.push_back(
@@ -87,6 +91,10 @@ class Tetris {
             squares.push_back(
                 {glm::ivec2(i, 20), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
         }
+        is_tetromino_active = false;
+        game_over = false;
+
+        double time_of_last_move_down = 0;
     }
 
     bool is_game_over() { return game_over; }
@@ -104,7 +112,11 @@ class Tetris {
         return true;
     }
 
-    void update(double delta_t) {
+    void update() {
+        double last_read = input.get_last_read();
+        KeyStatus* keys = input.get_state();
+        double current_time = glfwGetTime();
+
         // generate new tetromino if necessary
         if (!is_tetromino_active) {
             int tetromino_index = random_int(0, 6);
@@ -119,14 +131,10 @@ class Tetris {
 
             is_tetromino_active = true;
 
-            time_since_last_move[TetrisDirections::UP] = 0;
-            time_since_last_move[TetrisDirections::DOWN] = 0;
-            time_since_last_move[TetrisDirections::LEFT] = 0;
-            time_since_last_move[TetrisDirections::RIGHT] = 0;
+            time_of_last_move_down = current_time;
         }
 
-        if (input.is_key_pressed(GLFW_KEY_UP) &&
-            time_since_last_move[TetrisDirections::UP] > key_repeat_delay) {
+        if (keys[TetrisDirections::UP].action_needed) {
             square sq[4];
             for (int i = 0; i < 4; i++) {
                 sq[i].position = squares[squares.size() - 4 + i].position;
@@ -148,26 +156,18 @@ class Tetris {
                     squares[squares.size() - 4 + i].position = sq[i].position;
                 }
             }
-
-            time_since_last_move[TetrisDirections::UP] = 0;
         }
 
         // process input (down, left, right(check spot) space?)
         glm::ivec2 move(0, 0);
-        if (input.is_key_pressed(GLFW_KEY_LEFT) &&
-            time_since_last_move[TetrisDirections::LEFT] > key_repeat_delay) {
+        if (keys[TetrisDirections::LEFT].action_needed) {
             move.x += -1;
-            time_since_last_move[TetrisDirections::LEFT] = 0;
         }
-        if (input.is_key_pressed(GLFW_KEY_RIGHT) &&
-            time_since_last_move[TetrisDirections::RIGHT] > key_repeat_delay) {
+        if (keys[TetrisDirections::RIGHT].action_needed) {
             move.x += 1;
-            time_since_last_move[TetrisDirections::RIGHT] = 0;
         }
-        if (input.is_key_pressed(GLFW_KEY_DOWN) &&
-            time_since_last_move[TetrisDirections::DOWN] > key_repeat_delay) {
+        if (keys[TetrisDirections::DOWN].action_needed) {
             move.y += 1;
-            time_since_last_move[TetrisDirections::DOWN] = 0;
         }
 
         // check if tetromino can move to new spot and move it
@@ -175,11 +175,15 @@ class Tetris {
             for (int i = 0; i < 4; i++) {
                 squares[squares.size() - 4 + i].position += move;
             }
+
+            if(move.y == 1) {
+                time_of_last_move_down = current_time;
+            }
         }
 
-        // check if tetromino can not move down (every n ticks), move it and
+        // check if tetromino can not move down (every n ms), move it and
         // deactivate it
-        if (time_since_last_move[TetrisDirections::DOWN] > fall_delay) {
+        if (current_time - time_of_last_move_down > fall_delay) {
             if (can_move_to(&squares[squares.size() - 4], glm::ivec2(0, 1))) {
                 for (int i = 0; i < 4; i++) {
                     squares[squares.size() - 4 + i].position.y += 1;
@@ -188,7 +192,8 @@ class Tetris {
                 is_tetromino_active = false;
             }
 
-            time_since_last_move[TetrisDirections::DOWN] = 0;
+            // time_since_last_move[TetrisDirections::DOWN] = 0;
+            time_of_last_move_down = current_time;
         }
 
         // clear lines if necessary
@@ -225,11 +230,6 @@ class Tetris {
                 }
             }
         }
-
-        time_since_last_move[TetrisDirections::UP] += delta_t;
-        time_since_last_move[TetrisDirections::DOWN] += delta_t;
-        time_since_last_move[TetrisDirections::LEFT] += delta_t;
-        time_since_last_move[TetrisDirections::RIGHT] += delta_t;
     }
 
     size_t size() { return squares.size(); }

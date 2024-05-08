@@ -41,7 +41,6 @@ int main() {
     int grid_size = 200;
     int grid_step = 50;
     Tetris tetris = Tetris(input);
-    double current_time = window.get_time();
 
     // Render and game loop
     // --------------------
@@ -60,18 +59,21 @@ int main() {
         ImGui::SliderInt("grid step", &grid_step, 0, 100, "%d px");
         constexpr double ONE = 1.0;
         constexpr double ZERO = 0.0;
-        ImGui::SliderScalar("key repeat delay", ImGuiDataType_Double,
-                            &key_repeat_delay, &ZERO, &ONE, "%.3f s");
+        ImGui::SliderScalar("delay1", ImGuiDataType_Double, &delay1, &ZERO,
+                            &ONE, "%.3f s");
+        ImGui::SliderScalar("delay2", ImGuiDataType_Double, &delay2, &ZERO,
+                            &ONE, "%.3f s");
         ImGui::SliderScalar("fall delay", ImGuiDataType_Double, &fall_delay,
                             &ZERO, &ONE, "%.3f s");
         if (ImGui::Button("New Game")) {
-            tetris = Tetris(input);
+            tetris.new_game();
         }
         if (tetris.is_game_over()) {
             ImGui::Text("Game Over!");
         }
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                    1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                    1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
         // ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         /// Input
@@ -80,10 +82,7 @@ int main() {
 
         // Game logic
         // ---------------------------------------------------------------------
-        double previous_time = current_time;
-        current_time = window.get_time();
-
-        tetris.update(current_time - previous_time);
+        tetris.update();
 
         // Rendering
         // ---------------------------------------------------------------------

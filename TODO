@@ -6,24 +6,29 @@ compute collisions ✅
 create tetrominos ✅
 slide them ✅
 rotation ✅
-tetris ✅
+tetris MVP ✅
+better input (with delay instead of ticks) ✅
+does pressing down affect the automatic falling: yes ✅
 
-better input (with delay instead of ticks)
-fix delay on bottom().
-better rotation (store all rotations and position).
-bumping
+refactor
 
 copy data only when changed!
-...
 
-score
+show next tetromino
+
+score (imgui or text)
+
+levels + speed up
 
 dynamic score
 
-levels + speed up
+bumping
+better rotation (store all rotations and position).
 
 save & load
 
 improve square drawing
+
+square texture?
 
 WHY DOES SQUARE.POSITION WORK WITH FLOAT AND NOT INT???
