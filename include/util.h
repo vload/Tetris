@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#define VAR_NAME(var) #var
+
 // random float
 auto random_float = []() -> float {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);

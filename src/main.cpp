@@ -38,7 +38,6 @@ int main() {
 
     // Setup game elements
     // -------------------
-    int grid_size = 200;
     int grid_step = 50;
     Tetris tetris = Tetris(input);
 
@@ -56,7 +55,6 @@ int main() {
         ImGui::NewFrame();
 
         // imgui menu
-        ImGui::SliderInt("grid step", &grid_step, 0, 100, "%d px");
         constexpr double ONE = 1.0;
         constexpr double ZERO = 0.0;
         ImGui::SliderScalar("delay1", ImGuiDataType_Double, &delay1, &ZERO,
@@ -74,7 +72,6 @@ int main() {
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                     1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
-        // ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         /// Input
         // ---------------------------------------------------------------------

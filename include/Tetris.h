@@ -94,7 +94,7 @@ class Tetris {
         is_tetromino_active = false;
         game_over = false;
 
-        double time_of_last_move_down = 0;
+        time_of_last_move_down = 0;
     }
 
     bool is_game_over() { return game_over; }
@@ -113,7 +113,6 @@ class Tetris {
     }
 
     void update() {
-        double last_read = input.get_last_read();
         KeyStatus* keys = input.get_state();
         double current_time = glfwGetTime();
 

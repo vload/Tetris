@@ -8,6 +8,19 @@ project(
     
 set(CMAKE_CXX_STANDARD 20)
 
+# Enable warnings and pedantic flags for various compilers
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+        -Wall        # Enable most warning messages
+        -Wextra      # Enable extra warning messages
+        -pedantic    # Enable pedantic mode
+    )
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(
+        /W4        # Enable ALL warnings
+    )
+endif()
+
 # Set the path to dependencies folders
 set(GLFW ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glfw)
 set(GLAD ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad)
