@@ -9,11 +9,7 @@ rotation ✅
 tetris MVP ✅
 better input (with delay instead of ticks) ✅
 does pressing down affect the automatic falling: yes ✅
-
-refactor:
-    - add_unit_slider(double* ) to add a slider to the imgui window (macro also needed).
-    - leave some imgui in main.
-    - 
+refactor ✅
 
 README
 
