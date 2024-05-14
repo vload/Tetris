@@ -10,28 +10,24 @@ tetris MVP ✅
 better input (with delay instead of ticks) ✅
 does pressing down affect the automatic falling: yes ✅
 refactor ✅
-
-README
+README ✅
 
 show next tetromino
 
-slight adjustments to the input
+score (imgui)
 
-copy data only when changed!
-
-score (imgui or text)
+copy data only when changed! (do not abuse the CPU and the GPU just update when needed)
 
 levels + speed up
 
 dynamic score
 
-bumping
-better rotation (store all rotations and position).
+improve square drawing / square texture
 
-save & load
-
-improve square drawing
-
-square texture?
+bumping + better rotation (store all rotations and position).
 
 WHY DOES SQUARE.POSITION WORK WITH FLOAT AND NOT INT???
+
+text rendering
+
+scoreboard

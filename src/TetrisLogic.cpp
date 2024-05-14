@@ -89,35 +89,26 @@ void TetrisLogic::loop() {
         }
     }
 
-    // process input (down, left, right(check spot) space?)
-    glm::ivec2 move(0, 0);
+    // process for horizontal movement (left and right)
+    int move = 0;
     if (keys[TetrisDirections::LEFT].action_needed) {
-        move.x += -1;
+        move += -1;
     }
     if (keys[TetrisDirections::RIGHT].action_needed) {
-        move.x += 1;
-    }
-    if (keys[TetrisDirections::DOWN].action_needed) {
-        move.y += 1;
+        move += 1;
     }
 
     // check if tetromino can move to new spot and move it
-    if (can_move_to(&squares[squares.size() - 4], move)) {
+    if (move != 0 && can_move_to(&squares[squares.size() - 4], glm::ivec2(move, 0))) {
         for (int i = 0; i < 4; i++) {
-            squares[squares.size() - 4 + i].position += move;
-        }
-
-        if (move.y == 1) {
-            time_of_last_move_down = current_time;
+            squares[squares.size() - 4 + i].position.x += move;
         }
     }
-    else if (move.y == 1) {
-        is_tetromino_active = false;
-    }
 
-    // check if tetromino can not move down (every n ms), move it and
-    // deactivate it
-    if (current_time - time_of_last_move_down > state.fall_delay) {
+    // check if tetromino can move down (on delay (gravity) or on key press)
+    // try to move it and if it can't be moved, then deactivate it
+    if (current_time - time_of_last_move_down > state.fall_delay ||
+        keys[TetrisDirections::DOWN].action_needed) {
         if (can_move_to(&squares[squares.size() - 4], glm::ivec2(0, 1))) {
             for (int i = 0; i < 4; i++) {
                 squares[squares.size() - 4 + i].position.y += 1;
@@ -126,7 +117,6 @@ void TetrisLogic::loop() {
             is_tetromino_active = false;
         }
 
-        // time_since_last_move[TetrisDirections::DOWN] = 0;
         time_of_last_move_down = current_time;
     }
 
