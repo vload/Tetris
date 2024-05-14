@@ -7,10 +7,6 @@ This is a simple Tetris game made from scratch with C++ and OpenGL for the graph
 - [GLM](https://github.com/g-truc/glm)
 - [ImGUI](https://github.com/ocornut/imgui)
 
-## Screenshots
-
-![Gameplay](/screenshots/screenshot-1.png?raw=true "Gameplay")
-
 ## Installation
 
 ### Prerequisites
@@ -40,6 +36,10 @@ The game is controlled with the following keys:
 There is also a menu that allows tweaking the certain delays in the game.
 
 The binary can be found in the `build\Release` directory if you followed the installation steps above.
+
+## Screenshots
+
+![Gameplay](/screenshots/screenshot-1.png?raw=true "Gameplay")
 
 ## Meta
 
