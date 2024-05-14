@@ -9,7 +9,7 @@ This is a simple Tetris game made from scratch with C++ and OpenGL for the graph
 
 ## Screenshots
 
-![Gameplay](/screenshots/screenshot1.png?raw=true "Gameplay")
+![Gameplay](/screenshots/screenshot-1.png?raw=true "Gameplay")
 
 ## Installation
 
