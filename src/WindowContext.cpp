@@ -1,7 +1,6 @@
 #include "WindowContext.h"
 
-void default_framebuffer_size_callback(GLFWwindow* window, int width,
-                                       int height) {
+void default_framebuffer_size_callback(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
