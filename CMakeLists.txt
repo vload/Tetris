@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 
 project(
-    GL3
-    VERSION 0.0.1.1
-    DESCRIPTION "The GL trials continue onwards")
+    Tetris
+    VERSION 0.0.2
+    DESCRIPTION "A simple tetris game written with C++ and OpenGL.")
     
 set(CMAKE_CXX_STANDARD 20)
 

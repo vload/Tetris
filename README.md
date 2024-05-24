@@ -16,13 +16,13 @@ This is a simple Tetris game made from scratch with C++ and OpenGL for the graph
 
 Clone the repository and run the following commands to install prerequisites and build the project:
 ```sh
-git clone https://github.com/vload/GL3.git
-cd GL3
+git clone https://github.com/vload/Tetris.git
+cd Tetris
 git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..
-msbuild GL3.sln /p:Configuration=Release # change this to your compiler
+msbuild Tetris.sln /p:Configuration=Release # change this to your compiler
 ```
 
 ## Usage example
