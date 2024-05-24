@@ -9,8 +9,7 @@ rotation ✅
 tetris MVP ✅
 better input (with delay instead of ticks) ✅
 does pressing down affect the automatic falling: yes ✅
-
-show upcoming tetromino
+show upcoming tetromino ✅
 
 does gravity affect pressing down: ???
 

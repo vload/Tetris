@@ -49,6 +49,7 @@ The binary can be found in the `build\Release` directory if you followed the ins
 - Develop a Minimum Viable Product (MVP) for the Tetris game.
 - Improve user input handling by introducing a delay mechanism instead of using ticks.
 - Implement a feature where pressing down accelerates the automatic falling of Tetrominos.
+- Preview of next tetromino
 
 ## Screenshots
 

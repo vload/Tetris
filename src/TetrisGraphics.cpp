@@ -14,10 +14,10 @@ TetrisGraphics::TetrisGraphics(TetrisState& state)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     // configure vertex attributes for position and color
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(square),
-                          (void*)offsetof(square, position));
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(square),
-                          (void*)(offsetof(square, color)));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(block),
+                          (void*)offsetof(block, position));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(block),
+                          (void*)(offsetof(block, color)));
     // unbind the VAO and VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -32,8 +32,8 @@ void TetrisGraphics::loop() {
     // Rendering
     // ---------------------------------------------------------------------
     // Compute the number of grid cells in each axis
-    float gridWidth = (float)state.width / state.grid_step;
-    float gridHeight = (float)state.height / state.grid_step;
+    float gridWidth = (float)state.width / state.block_size;
+    float gridHeight = (float)state.height / state.block_size;
 
     // Create the orthographic projection matrix
     glm::mat4 projection =
@@ -50,10 +50,10 @@ void TetrisGraphics::loop() {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // Update the VBO with the new data
-    glBufferData(GL_ARRAY_BUFFER, sizeof(square) * state.squares.size(),
-                 state.squares.data(), GL_DYNAMIC_DRAW);
-    // Draw the squares
-    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(state.squares.size()));
+    glBufferData(GL_ARRAY_BUFFER, sizeof(block) * state.blocks.size(),
+                 state.blocks.data(), GL_DYNAMIC_DRAW);
+    // Draw the blocks
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(state.blocks.size()));
     // Unbind the VAO and VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

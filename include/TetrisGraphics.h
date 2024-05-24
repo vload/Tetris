@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Program.h"
-// order matters
+// include order matters
 #include "TetrisState.h"
 
 class TetrisGraphics {

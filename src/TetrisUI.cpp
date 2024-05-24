@@ -37,10 +37,11 @@ void TetrisUI::loop() {
     // imgui menu
     constexpr double ONE = 1.0;
     constexpr double ZERO = 0.0;
-    ImGui::SliderScalar("delay1", ImGuiDataType_Double, &state.delay1, &ZERO, &ONE,
+    ImGui::SliderScalar("delay_after_first_key_press", ImGuiDataType_Double,
+                        &state.delay_after_first_key_press, &ZERO, &ONE,
                         "%.3f s");
-    ImGui::SliderScalar("delay2", ImGuiDataType_Double, &state.delay2, &ZERO,
-                        &ONE, "%.3f s");
+    ImGui::SliderScalar("repeat_key_delay", ImGuiDataType_Double,
+                        &state.repeat_key_delay, &ZERO, &ONE, "%.3f s");
     ImGui::SliderScalar("fall delay", ImGuiDataType_Double, &state.fall_delay,
                         &ZERO, &ONE, "%.3f s");
     if (ImGui::Button("New Game")) {
@@ -49,7 +50,7 @@ void TetrisUI::loop() {
     if (state.is_game_over) {
         ImGui::Text("Game Over!");
     }
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+    ImGui::Text("Average frametime (FPS): %.3f ms/frame (%.1f)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
     // render imgui

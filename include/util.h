@@ -17,8 +17,10 @@
 #include "imgui.h"
 
 // std
+#include <array>
 #include <iomanip>
 #include <iostream>
+#include <ranges>
 #include <string>
 #include <vector>
 

@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-struct square {
+struct block {
     glm::vec2 position;
     glm::vec4 color;
 };
@@ -29,71 +29,73 @@ struct KeyStatus {
     bool action_needed;
 };
 
-constexpr square tetrominos[][4] = {
+constexpr block tetrominos[][4] = {
     {
         // O
-        {glm::ivec2(7, 0), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {glm::ivec2(6, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
-        {glm::ivec2(7, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-1, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
+        {glm::ivec2(0, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)},
     },
     {
         // I
-        {glm::ivec2(7, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(8, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(5, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(1, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-2, 0), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)},
     },
     {
         // T
-        {glm::ivec2(7, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(8, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(7, 1), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(1, 0), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 1), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)},
     },
     {
         // L
-        {glm::ivec2(7, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(8, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
-        {glm::ivec2(6, 1), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(1, 0), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
+        {glm::ivec2(-1, 1), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f)},
     },
     {
         // J
-        {glm::ivec2(7, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(8, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
-        {glm::ivec2(8, 1), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(1, 0), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
+        {glm::ivec2(1, 1), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)},
     },
     {
         // Z
-        {glm::ivec2(7, 0), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(6, 0), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(7, 1), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(8, 1), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(-1, 0), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 1), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(1, 1), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f)},
     },
     {
         // S
-        {glm::ivec2(7, 0), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(8, 0), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(7, 1), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-        {glm::ivec2(6, 1), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 0), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(1, 0), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(0, 1), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+        {glm::ivec2(-1, 1), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
     },
 };
 
-struct TetrisState{
+struct TetrisState {
     // settings
     double fall_delay = 0.5;
-    double delay1 = 0.25;
-    double delay2 = 0.05;
+    double delay_after_first_key_press = 0.25;
+    double repeat_key_delay = 0.05;
+    double current_time = 0;
 
     GLFWwindow* window = nullptr;
-    int width = 1000;
-    int height = 1000;
-    int grid_step = 50;
+    int width = 1100;
+    int height = 1100;
+    int block_size = 50;
+
     bool should_start_new_game = false;
     bool is_game_over = false;
-    std::vector<square> squares = {};
+    std::vector<block> blocks = {};
 
-    KeyStatus keys[TetrisDirections::_COUNT] = {0};
+    std::array<KeyStatus, TetrisDirections::_COUNT> keys = {0};
 };

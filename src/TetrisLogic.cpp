@@ -1,76 +1,152 @@
 #include "TetrisLogic.h"
 
-TetrisLogic::TetrisLogic(TetrisState& state) : state(state), squares(state.squares){
-    squares = std::vector<square>();
-    new_game();
+TetrisLogic::TetrisLogic(TetrisState& state)
+    : state(state), blocks(state.blocks) {
+    blocks = std::vector<block>();
+    start_new_game();
 }
 
-void TetrisLogic::new_game() {
+auto TetrisLogic::get_current_piece() {
+    return blocks | std::views::drop(blocks.size() - 8) | std::views::take(4);
+}
+
+auto TetrisLogic::get_upcoming_piece() {
+    return blocks | std::views::drop(blocks.size() - 4);
+}
+
+auto TetrisLogic::get_inactive_blocks() {
+    if (is_piece_locked)
+        return blocks | std::views::take(blocks.size() - 4);
+    else
+        return blocks | std::views::take(blocks.size() - 8);
+}
+
+void TetrisLogic::start_new_game() {
     srand(static_cast<unsigned int>(time(NULL)));
 
-    squares.clear();
-    // put up walls
-    for (int i = -5; i < 20; i++) {
-        squares.push_back(
-            {glm::ivec2(1, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
-        squares.push_back(
-            {glm::ivec2(12, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
-    }
-    for (int i = 1; i < 13; i++) {
-        squares.push_back(
-            {glm::ivec2(i, 20), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
-    }
-    is_tetromino_active = false;
+    blocks.clear();
+    create_boundary_walls();
+
+    is_piece_locked = true;
     state.is_game_over = false;
     state.should_start_new_game = false;
 
     time_of_last_move_down = 0;
+    generate_new_upcoming_piece();
 }
 
-bool TetrisLogic::can_move_to(const square sq[4],
-                              glm::vec2 delta) {
-    size_t last = (is_tetromino_active) ? squares.size() - 4 : squares.size();
-    for (int j = 0; j < last; j++) {
+void TetrisLogic::create_boundary_walls() {
+    // side walls
+    for (int i = -5; i < 20; i++) {
+        blocks.push_back({glm::ivec2(1, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
+        blocks.push_back(
+            {glm::ivec2(12, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
+    }
+    // bottom wall
+    for (int i = 1; i < 13; i++) {
+        blocks.push_back(
+            {glm::ivec2(i, 20), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
+    }
+}
+
+void TetrisLogic::generate_new_upcoming_piece() {
+    int tetromino_index = random_int(0, 6);
+
+    for (int i = 0; i < 4; i++)
+        blocks.push_back(tetrominos[tetromino_index][i]);
+
+    for (block& s : get_upcoming_piece())
+        s.position += UPCOMING_PIECE_PREVIEW_POSITION;
+}
+
+bool TetrisLogic::is_upcoming_piece_playable() {
+    return !does_movement_collide_with_inactive_blocks(
+        get_upcoming_piece().data(),
+        PIECE_SPAWN_POSTION - UPCOMING_PIECE_PREVIEW_POSITION);
+}
+
+bool TetrisLogic::does_collide_with_inactive_blocks(const block sq[4]) {
+    for (const block& s : get_inactive_blocks()) {
         for (int i = 0; i < 4; i++) {
-            if (sq[i].position + delta == squares[j].position) {
-                return false;
+            if (sq[i].position == s.position) {
+                return true;
             }
         }
     }
+    return false;
+}
+
+bool TetrisLogic::does_movement_collide_with_inactive_blocks(const block sq[4],
+                                                             glm::vec2 delta) {
+    for (const block& s : get_inactive_blocks()) {
+        for (int i = 0; i < 4; i++) {
+            if (sq[i].position + delta == s.position) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool TetrisLogic::move_current_piece_if_possible(glm::vec2 delta) {
+    if (!does_movement_collide_with_inactive_blocks(get_current_piece().data(),
+                                                    delta)) {
+        for (block& s : get_current_piece()) {
+            s.position += delta;
+        }
+        return true;
+    }
+    return false;
+}
+
+void TetrisLogic::place_upcoming_piece() {
+    for (block& s : get_upcoming_piece())
+        s.position =
+            s.position - UPCOMING_PIECE_PREVIEW_POSITION + PIECE_SPAWN_POSTION;
+}
+
+bool TetrisLogic::place_upcoming_piece_if_possible() {
+    if (!is_upcoming_piece_playable()) {
+        state.is_game_over = true;
+        return false;
+    }
+
+    place_upcoming_piece();
+
+    generate_new_upcoming_piece();
+
+    is_piece_locked = false;
+
     return true;
 }
 
-void TetrisLogic::loop() {
-    KeyStatus* keys = state.keys;
-    double current_time = glfwGetTime();
-
-    if(state.should_start_new_game){
-        new_game();
+void TetrisLogic::handle_horizontal_movement() {
+    int move = 0;
+    if (state.keys[TetrisDirections::LEFT].action_needed) {
+        move += -1;
     }
-
-    // generate new tetromino if necessary
-    if (!is_tetromino_active) {
-        int tetromino_index = random_int(0, 6);
-
-        if (!can_move_to(tetrominos[tetromino_index])) {
-            state.is_game_over = true;
-            return;
-        }
-
-        for (int i = 0; i < 4; i++)
-            squares.push_back(tetrominos[tetromino_index][i]);
-
-        is_tetromino_active = true;
-
-        time_of_last_move_down = current_time;
+    if (state.keys[TetrisDirections::RIGHT].action_needed) {
+        move += 1;
     }
+    move_current_piece_if_possible(glm::ivec2(move, 0));
+}
 
-    if (keys[TetrisDirections::UP].action_needed) {
-        square sq[4];
-        for (int i = 0; i < 4; i++) {
-            sq[i].position = squares[squares.size() - 4 + i].position;
-            sq[i].color = squares[squares.size() - 4 + i].color;
-        }
+void TetrisLogic::handle_piece_falling() {
+    // check if tetromino can move down (on delay (gravity) or on key press)
+    // try to move it and if it can't be moved, then deactivate it
+    if (state.current_time - time_of_last_move_down > state.fall_delay ||
+        state.keys[TetrisDirections::DOWN].action_needed) {
+        if (!move_current_piece_if_possible(glm::ivec2(0, 1)))
+            is_piece_locked = true;
+
+        time_of_last_move_down = state.current_time;
+    }
+}
+
+void TetrisLogic::handle_piece_rotation() {
+    if (state.keys[TetrisDirections::UP].action_needed) {
+        block sq[4];
+        std::copy(get_current_piece().begin(), get_current_piece().end(), sq);
 
         // calculate center of rotation
         glm::vec2 center = sq[0].position;
@@ -82,57 +158,45 @@ void TetrisLogic::loop() {
         }
 
         // check if tetromino can move to new spot and move it
-        if (can_move_to(sq)) {
-            for (int i = 0; i < 4; i++) {
-                squares[squares.size() - 4 + i].position = sq[i].position;
-            }
+        if (!does_collide_with_inactive_blocks(sq)) {
+            std::copy(sq, sq + 4, get_current_piece().begin());
         }
     }
+}
 
-    // process for horizontal movement (left and right)
-    int move = 0;
-    if (keys[TetrisDirections::LEFT].action_needed) {
-        move += -1;
-    }
-    if (keys[TetrisDirections::RIGHT].action_needed) {
-        move += 1;
+void TetrisLogic::loop() {
+    if (state.should_start_new_game) {
+        start_new_game();
     }
 
-    // check if tetromino can move to new spot and move it
-    if (move != 0 && can_move_to(&squares[squares.size() - 4], glm::ivec2(move, 0))) {
-        for (int i = 0; i < 4; i++) {
-            squares[squares.size() - 4 + i].position.x += move;
-        }
+    if (is_piece_locked) {
+        if (!place_upcoming_piece_if_possible()) return;
+
+        time_of_last_move_down = state.current_time;
     }
 
-    // check if tetromino can move down (on delay (gravity) or on key press)
-    // try to move it and if it can't be moved, then deactivate it
-    if (current_time - time_of_last_move_down > state.fall_delay ||
-        keys[TetrisDirections::DOWN].action_needed) {
-        if (can_move_to(&squares[squares.size() - 4], glm::ivec2(0, 1))) {
-            for (int i = 0; i < 4; i++) {
-                squares[squares.size() - 4 + i].position.y += 1;
-            }
-        } else {
-            is_tetromino_active = false;
-        }
+    handle_piece_rotation();
 
-        time_of_last_move_down = current_time;
-    }
+    handle_horizontal_movement();
 
-    // clear lines if necessary
-    if (!is_tetromino_active) {
+    handle_piece_falling();
+
+    remove_completed_rows();
+}
+
+void TetrisLogic::remove_completed_rows() {
+    if (is_piece_locked) {
         // check if any lines are full (only in the play area)
         int count_per_line[20] = {0};
-        for (int j = 0; j < squares.size(); j++) {
-            if (squares[j].position.x > 1 && squares[j].position.x < 12 &&
-                squares[j].position.y >= 0 && squares[j].position.y < 20) {
-                count_per_line[(int)squares[j].position.y]++;
+        for (int j = 0; j < blocks.size(); j++) {
+            if (blocks[j].position.x > 1 && blocks[j].position.x < 12 &&
+                blocks[j].position.y >= 0 && blocks[j].position.y < 20) {
+                count_per_line[(int)blocks[j].position.y]++;
             }
         }
 
         // remove full lines
-        std::erase_if(squares, [&](square s) {
+        std::erase_if(blocks, [&](block s) {
             return s.position.x > 1 && s.position.x < 12 && s.position.y > 0 &&
                    s.position.y < 20 && count_per_line[(int)s.position.y] == 10;
         });
@@ -145,11 +209,11 @@ void TetrisLogic::loop() {
         }
 
         // move lines down
-        for (int i = 0; i < squares.size(); i++) {
-            if (squares[i].position.x > 1 && squares[i].position.x < 12 &&
-                squares[i].position.y < 20) {
-                squares[i].position.y +=
-                    move_line_down_by[(int)squares[i].position.y];
+        for (int i = 0; i < blocks.size(); i++) {
+            if (blocks[i].position.x > 1 && blocks[i].position.x < 12 &&
+                blocks[i].position.y < 20) {
+                blocks[i].position.y +=
+                    move_line_down_by[(int)blocks[i].position.y];
             }
         }
     }

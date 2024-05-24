@@ -23,7 +23,7 @@ WindowContext::WindowContext(TetrisState& state) : state(state) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a GLFW window object
-    window = glfwCreateWindow(1100, 1100, "Tetris", 0, NULL);
+    window = glfwCreateWindow(state.width, state.height, "Tetris", 0, NULL);
     if (window == NULL) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
@@ -37,13 +37,15 @@ WindowContext::WindowContext(TetrisState& state) : state(state) {
     }
 
     // Tell OpenGL the size of the rendering window
-    glViewport(0, 0, get_width(), get_height());
+    glViewport(0, 0, state.width, state.height);
     glfwSetFramebufferSizeCallback(window, default_framebuffer_size_callback);
 
     state.window = window;
 }
 
 void WindowContext::loop() {
+    // set the current time
+    state.current_time = glfwGetTime();
     // swap the buffers
     glfwSwapBuffers(window);
     // check and call events
@@ -57,26 +59,4 @@ WindowContext::~WindowContext() {
     glfwTerminate();
 }
 
-GLFWwindow* WindowContext::get() { return window; }
-
 bool WindowContext::should_close() { return glfwWindowShouldClose(window); }
-
-void WindowContext::set_should_close(bool value) {
-    glfwSetWindowShouldClose(window, value);
-}
-
-int WindowContext::get_key(int key) { return glfwGetKey(window, key); }
-
-int WindowContext::get_width() {
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    return width;
-}
-
-int WindowContext::get_height() {
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    return height;
-}
-
-double WindowContext::get_time() { return glfwGetTime(); }
