@@ -29,6 +29,8 @@ TetrisGraphics::~TetrisGraphics() {
 }
 
 void TetrisGraphics::loop() {
+    if (!state.is_scene_dirty) return;
+
     // Rendering
     // ---------------------------------------------------------------------
     // Compute the number of grid cells in each axis

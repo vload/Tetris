@@ -6,6 +6,7 @@ class TetrisLogic {
    private:
     const glm::vec2 UPCOMING_PIECE_PREVIEW_POSITION{17, 11};
     const glm::vec2 PIECE_SPAWN_POSTION{7, 0};
+    const double fall_delay = 0.5;
 
     TetrisState& state;
     std::vector<block>& blocks;
@@ -29,8 +30,7 @@ class TetrisLogic {
     void handle_horizontal_movement();
     void handle_piece_rotation();
     void handle_piece_falling();
-
-    void remove_completed_rows();
+    void handle_completed_rows();
 
     auto get_current_piece();
     auto get_upcoming_piece();

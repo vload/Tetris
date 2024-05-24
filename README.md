@@ -43,6 +43,7 @@ The binary can be found in the `build\Release` directory if you followed the ins
 - Implement a feature where pressing down accelerates the automatic falling of Tetrominos.
 - Preview of next tetromino
 - Imgui score display
+- On-demand rendering to reduce CPU and GPU usage.
 
 ## Screenshots
 

@@ -33,6 +33,7 @@ void TetrisLogic::start_new_game() {
 
     time_of_last_move_down = 0;
     generate_new_upcoming_piece();
+    state.is_scene_dirty = true;
 }
 
 void TetrisLogic::create_boundary_walls() {
@@ -116,6 +117,8 @@ bool TetrisLogic::place_upcoming_piece_if_possible() {
     generate_new_upcoming_piece();
 
     is_piece_locked = false;
+    time_of_last_move_down = state.current_time;
+    state.is_scene_dirty = true;
 
     return true;
 }
@@ -128,18 +131,22 @@ void TetrisLogic::handle_horizontal_movement() {
     if (state.keys[TetrisDirections::RIGHT].action_needed) {
         move += 1;
     }
-    move_current_piece_if_possible(glm::ivec2(move, 0));
+    if (move != 0) {
+        move_current_piece_if_possible(glm::ivec2(move, 0));
+        state.is_scene_dirty = true;
+    }
 }
 
 void TetrisLogic::handle_piece_falling() {
     // check if tetromino can move down (on delay (gravity) or on key press)
     // try to move it and if it can't be moved, then deactivate it
-    if (state.current_time - time_of_last_move_down > state.fall_delay ||
+    if (state.current_time - time_of_last_move_down > fall_delay ||
         state.keys[TetrisDirections::DOWN].action_needed) {
         if (!move_current_piece_if_possible(glm::ivec2(0, 1)))
             is_piece_locked = true;
 
         time_of_last_move_down = state.current_time;
+        state.is_scene_dirty = true;
     }
 }
 
@@ -160,19 +167,20 @@ void TetrisLogic::handle_piece_rotation() {
         // check if tetromino can move to new spot and move it
         if (!does_collide_with_inactive_blocks(sq)) {
             std::copy(sq, sq + 4, get_current_piece().begin());
+            state.is_scene_dirty = true;
         }
     }
 }
 
 void TetrisLogic::loop() {
+    state.is_scene_dirty = false;
+
     if (state.should_start_new_game) {
         start_new_game();
     }
 
     if (is_piece_locked) {
         if (!place_upcoming_piece_if_possible()) return;
-
-        time_of_last_move_down = state.current_time;
     }
 
     handle_piece_rotation();
@@ -181,10 +189,10 @@ void TetrisLogic::loop() {
 
     handle_piece_falling();
 
-    remove_completed_rows();
+    handle_completed_rows();
 }
 
-void TetrisLogic::remove_completed_rows() {
+void TetrisLogic::handle_completed_rows() {
     if (is_piece_locked) {
         // check if any lines are full (only in the play area)
         int count_per_line[20] = {0};
@@ -196,10 +204,14 @@ void TetrisLogic::remove_completed_rows() {
         }
 
         // remove full lines
-        size_t rows_cleared = std::erase_if(blocks, [&](block s) {
-            return s.position.x > 1 && s.position.x < 12 && s.position.y > 0 &&
-                   s.position.y < 20 && count_per_line[(int)s.position.y] == 10;
-        }) / 10;
+        size_t rows_cleared =
+            std::erase_if(blocks,
+                          [&](block s) {
+                              return s.position.x > 1 && s.position.x < 12 &&
+                                     s.position.y > 0 && s.position.y < 20 &&
+                                     count_per_line[(int)s.position.y] == 10;
+                          }) /
+            10;
 
         // calculate how many lines to move the lines down by
         int move_line_down_by[20] = {0};
@@ -218,6 +230,10 @@ void TetrisLogic::remove_completed_rows() {
         }
 
         adjust_score(rows_cleared);
+
+        if (rows_cleared > 0) {
+            state.is_scene_dirty = true;
+        }
     }
 }
 

@@ -82,12 +82,6 @@ constexpr block tetrominos[][4] = {
 };
 
 struct TetrisState {
-    // settings
-    double fall_delay = 0.5;
-    double delay_after_first_key_press = 0.25;
-    double repeat_key_delay = 0.05;
-    double current_time = 0;
-
     GLFWwindow* window = nullptr;
     int width = 1100;
     int height = 1100;
@@ -98,6 +92,8 @@ struct TetrisState {
     std::vector<block> blocks = {};
     int score = 0;
     bool previous_clear_was_tetris = false;
+    bool is_scene_dirty = false;
+    double current_time = 0;
 
     std::array<KeyStatus, TetrisDirections::_COUNT> keys = {0};
 };

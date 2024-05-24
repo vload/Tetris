@@ -1,7 +1,6 @@
 #include "TetrisInput.h"
 
-TetrisInput::TetrisInput(TetrisState& state)
-    : state(state), keys(state.keys) {}
+TetrisInput::TetrisInput(TetrisState& state) : state(state), keys(state.keys) {}
 
 void TetrisInput::loop() {
     for (int i = 0; i < TetrisDirections::_COUNT; i++) {
@@ -15,9 +14,9 @@ void TetrisInput::loop() {
 
         keys[i].pressed = is_key_pressed(TetrisKeyNamesGLFW[i]);
 
-        double x = floor((state.current_time - state.delay_after_first_key_press -
+        double x = floor((state.current_time - delay_after_first_key_press -
                           keys[i].time_pressed) /
-                         state.repeat_key_delay);
+                         repeat_key_delay);
 
         if (keys[i].pressed && x > keys[i].prev_x) {
             keys[i].action_needed = true;

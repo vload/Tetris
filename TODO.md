@@ -12,8 +12,13 @@ does pressing down affect the automatic falling: yes ✅
 show upcoming tetromino ✅
 does gravity affect pressing down: no ✅
 score (imgui) ✅
+copy data only when changed! (on-demand rendering)  ✅
 
-copy data only when changed! (do not abuse the CPU and the GPU just update when needed)
+texture for square
+
+texture for square colors with 2 colors per square (one for each level/type combination)
+
+extract GameBoard class
 
 levels + speed up
 

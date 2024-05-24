@@ -46,8 +46,8 @@ WindowContext::WindowContext(TetrisState& state) : state(state) {
 void WindowContext::loop() {
     // set the current time
     state.current_time = glfwGetTime();
-    // swap the buffers
-    glfwSwapBuffers(window);
+    // swap the buffers if required
+    if (state.is_scene_dirty) glfwSwapBuffers(window);
     // check and call events
     glfwPollEvents();
     // update the window size
