@@ -36,6 +36,8 @@ class TetrisLogic {
     auto get_upcoming_piece();
     auto get_inactive_blocks();
 
+    void adjust_score(size_t rows_cleared);
+
    public:
     TetrisLogic(TetrisState& state);
 

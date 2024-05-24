@@ -38,18 +38,11 @@ There is also a menu that allows tweaking the certain delays in the game.
 The binary can be found in the `build\Release` directory if you followed the installation steps above.
 
 ## Features
-- Display a single square on the game board.
-- Display multiple squares on the game board.
-- Enable movement of game pieces.
-- Generate walls on the game board.
-- Compute and handle collisions between game pieces and walls.
-- Create Tetrominos, the geometric shapes composed of four -square blocks that are used in the game.
-- Enable sliding of Tetrominos across the game board.
-- Implement rotation of Tetrominos.
-- Develop a Minimum Viable Product (MVP) for the Tetris game.
+- Minimum Viable Product (MVP) for the Tetris game.
 - Improve user input handling by introducing a delay mechanism instead of using ticks.
 - Implement a feature where pressing down accelerates the automatic falling of Tetrominos.
 - Preview of next tetromino
+- Imgui score display
 
 ## Screenshots
 

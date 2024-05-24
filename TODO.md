@@ -10,10 +10,8 @@ tetris MVP ✅
 better input (with delay instead of ticks) ✅
 does pressing down affect the automatic falling: yes ✅
 show upcoming tetromino ✅
-
-does gravity affect pressing down: ???
-
-score (imgui)
+does gravity affect pressing down: no ✅
+score (imgui) ✅
 
 copy data only when changed! (do not abuse the CPU and the GPU just update when needed)
 

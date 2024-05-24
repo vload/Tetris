@@ -96,6 +96,8 @@ struct TetrisState {
     bool should_start_new_game = false;
     bool is_game_over = false;
     std::vector<block> blocks = {};
+    int score = 0;
+    bool previous_clear_was_tetris = false;
 
     std::array<KeyStatus, TetrisDirections::_COUNT> keys = {0};
 };

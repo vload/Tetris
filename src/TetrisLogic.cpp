@@ -196,10 +196,10 @@ void TetrisLogic::remove_completed_rows() {
         }
 
         // remove full lines
-        std::erase_if(blocks, [&](block s) {
+        size_t rows_cleared = std::erase_if(blocks, [&](block s) {
             return s.position.x > 1 && s.position.x < 12 && s.position.y > 0 &&
                    s.position.y < 20 && count_per_line[(int)s.position.y] == 10;
-        });
+        }) / 10;
 
         // calculate how many lines to move the lines down by
         int move_line_down_by[20] = {0};
@@ -216,5 +216,24 @@ void TetrisLogic::remove_completed_rows() {
                     move_line_down_by[(int)blocks[i].position.y];
             }
         }
+
+        adjust_score(rows_cleared);
     }
+}
+
+void TetrisLogic::adjust_score(size_t rows_cleared) {
+    static const int points_per_row[6] = {0, 100, 300, 700, 1500, 3100};
+    if (rows_cleared == 0) return;
+
+    if (rows_cleared == 4) {
+        if (state.previous_clear_was_tetris) {  // back to back tetris
+            rows_cleared++;
+        }
+
+        state.previous_clear_was_tetris = true;
+    } else {
+        state.previous_clear_was_tetris = false;
+    }
+
+    state.score += points_per_row[rows_cleared];
 }

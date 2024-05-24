@@ -50,6 +50,7 @@ void TetrisUI::loop() {
     if (state.is_game_over) {
         ImGui::Text("Game Over!");
     }
+    ImGui::Text("Score: %d", state.score);
     ImGui::Text("Average frametime (FPS): %.3f ms/frame (%.1f)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
