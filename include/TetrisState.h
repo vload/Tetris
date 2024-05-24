@@ -87,7 +87,7 @@ struct TetrisState {
     int height = 1100;
     int block_size = 50;
 
-    bool should_start_new_game = false;
+    bool should_start_new_game = true;
     bool is_game_over = false;
     std::vector<block> blocks = {};
     int score = 0;

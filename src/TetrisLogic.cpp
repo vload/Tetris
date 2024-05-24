@@ -1,10 +1,7 @@
 #include "TetrisLogic.h"
 
 TetrisLogic::TetrisLogic(TetrisState& state)
-    : state(state), blocks(state.blocks) {
-    blocks = std::vector<block>();
-    start_new_game();
-}
+    : state(state), blocks(state.blocks) {}
 
 auto TetrisLogic::get_current_piece() {
     return blocks | std::views::drop(blocks.size() - 8) | std::views::take(4);
