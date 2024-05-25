@@ -30,6 +30,8 @@ void TetrisLogic::start_new_game() {
     state.is_game_over = false;
     state.should_start_new_game = false;
     state.score = 0;
+    state.level = 1;
+    state.clears = 0;
 
     time_of_last_move_down = 0;
     generate_new_upcoming_piece();
@@ -39,14 +41,12 @@ void TetrisLogic::start_new_game() {
 void TetrisLogic::create_boundary_walls() {
     // side walls
     for (int i = -5; i < 20; i++) {
-        blocks.push_back({glm::ivec2(1, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
-        blocks.push_back(
-            {glm::ivec2(12, i), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
+        blocks.push_back({glm::ivec2(1, i), 0});
+        blocks.push_back({glm::ivec2(12, i), 0});
     }
     // bottom wall
     for (int i = 1; i < 13; i++) {
-        blocks.push_back(
-            {glm::ivec2(i, 20), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)});
+        blocks.push_back({glm::ivec2(i, 20), 0});
     }
 }
 
@@ -251,5 +251,10 @@ void TetrisLogic::adjust_score(size_t rows_cleared) {
         state.previous_clear_was_tetris = false;
     }
 
-    state.score += points_per_row[rows_cleared];
+    state.score += points_per_row[rows_cleared] * state.level;
+    state.clears += rows_cleared;
+    if(state.clears >= 10) {
+        state.level++;
+        state.clears -= 10;
+    }
 }

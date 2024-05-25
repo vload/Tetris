@@ -11,7 +11,9 @@ class Texture{
     ~Texture();
 
     void bind();
+    void bind(int placeholder);
     void unbind();
+    void unbind(int placeholder);
 
     Texture(const Texture&) = delete;
     Texture(Texture&&) = delete;

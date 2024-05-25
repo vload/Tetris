@@ -55,6 +55,7 @@ void TetrisUI::loop() {
         ImGui::Text("Game Over!");
     }
     ImGui::Text("Score: %d", state.score);
+    ImGui::Text("Level: %d", state.level);
 
     ImGui::End();
 

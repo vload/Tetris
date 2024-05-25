@@ -38,11 +38,13 @@ There is also a menu that allows tweaking the certain delays in the game.
 The binary can be found in the `build\Release` directory if you followed the installation steps above.
 
 ## Features
-- Minimum Viable Product (MVP) for the Tetris game.
-- Improve user input handling by introducing a delay mechanism instead of using ticks.
-- Implement a feature where pressing down accelerates the automatic falling of Tetrominos.
+- Minimum Viable Product Tetris game.
+- Input based on delay instead of ticks for more responsive controls.
+- Piece dropping.
 - Preview of next tetromino
 - Imgui score display
+- Textured blocks
+- Per level color scheme
 - On-demand rendering to reduce CPU and GPU usage.
 
 ## Screenshots

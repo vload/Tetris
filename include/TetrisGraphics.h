@@ -9,6 +9,7 @@ class TetrisGraphics {
    private:
     Program program;
     Texture block_texture;
+    Texture level_color_texture;
     TetrisState& state;
     unsigned int VAO, VBO;
 

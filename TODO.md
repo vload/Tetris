@@ -1,5 +1,5 @@
-show one square ✅
-show multiple squares ✅
+show one block ✅
+show multiple blocks ✅
 pieces move ✅
 generate walls ✅
 compute collisions ✅
@@ -13,23 +13,24 @@ show upcoming tetromino ✅
 does gravity affect pressing down: no ✅
 score (imgui) ✅
 copy data only when changed! (on-demand rendering)  ✅
-
-texture for square
-
-texture for square colors with 2 colors per square (one for each level/type combination)
+texture for block  ✅
+texture for block colors per level  ✅
+levels  ✅
+dynamic score ✅
+improve block drawing / block texture ✅
 
 extract GameBoard class
 
-levels + speed up
+speed up per level
 
-dynamic score
-
-improve square drawing / square texture
+different textures for different blocks
 
 bumping + better rotation (store all rotations and position).
 
-WHY DOES SQUARE.POSITION WORK WITH FLOAT AND NOT INT???
-
-text rendering
+WHY DOES block.POSITION WORK WITH FLOAT AND NOT INT???
 
 scoreboard
+
+change imgui settings and font
+
+animations!

@@ -24,14 +24,25 @@ Texture::Texture(const std::string& path) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, data);
     // free the image data
-    stbi_image_free(data);
+    // stbi_image_free(data);
 
     // unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);
 }
-
 Texture::~Texture() { glDeleteTextures(1, &texture); }
 
 void Texture::bind() { glBindTexture(GL_TEXTURE_2D, texture); }
 
+void Texture::bind(int textureUnit) {
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE0);
+}
+
 void Texture::unbind() { glBindTexture(GL_TEXTURE_2D, 0); }
+
+void Texture::unbind(int textureUnit) {
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+}
