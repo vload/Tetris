@@ -1,5 +1,6 @@
 #pragma once
 
+// glad and glfw
 #include <glad/glad.h>
 // This order is important
 #include <GLFW/glfw3.h>
@@ -7,20 +8,11 @@
 // glm
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-
-// imgui
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "imgui.h"
 
 // std
 #include <array>
-#include <iomanip>
 #include <iostream>
-#include <ranges>
 #include <string>
 #include <vector>
 

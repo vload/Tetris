@@ -1,5 +1,3 @@
-#include <iostream>  // for debugging purposes
-
 #include "TetrisState.h"
 // order matters
 #include "TetrisGraphics.h"

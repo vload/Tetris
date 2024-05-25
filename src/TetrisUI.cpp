@@ -1,5 +1,10 @@
 #include "TetrisUI.h"
 
+// imgui
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <imgui.h>
+
 TetrisUI::TetrisUI(TetrisState& state) : state(state) {
     // Setup imgui
     IMGUI_CHECKVERSION();
@@ -37,7 +42,7 @@ void TetrisUI::loop() {
     ImGui::Begin("Tetris", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-                     ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground);
+                     ImGuiWindowFlags_NoBackground);
     ImGui::SetWindowPos(ImVec2(709, 73), ImGuiCond_Always);
     ImGui::SetWindowSize(ImVec2(390, 181), ImGuiCond_Always);
     ImGui::SetWindowFontScale(2);

@@ -1,5 +1,7 @@
 #include "TetrisLogic.h"
 
+#include <ranges>
+
 TetrisLogic::TetrisLogic(TetrisState& state)
     : state(state), blocks(state.blocks) {}
 
@@ -27,6 +29,7 @@ void TetrisLogic::start_new_game() {
     is_piece_locked = true;
     state.is_game_over = false;
     state.should_start_new_game = false;
+    state.score = 0;
 
     time_of_last_move_down = 0;
     generate_new_upcoming_piece();

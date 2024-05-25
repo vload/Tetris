@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(
     Tetris
-    VERSION 0.0.2
+    VERSION 0.0.2.1
     DESCRIPTION "A simple tetris game written with C++ and OpenGL.")
     
 set(CMAKE_CXX_STANDARD 20)
@@ -26,6 +26,7 @@ set(GLFW ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glfw)
 set(GLAD ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad)
 set(GLM ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm)
 set(IMGUI ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui)
+set(STB ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/stb)
 
 
 # Add the include directory
@@ -55,12 +56,15 @@ target_sources(main PUBLIC ${IMGUI_HEADERS})
 target_sources(main PUBLIC ${IMGUI_SOURCES})
 include_directories(${IMGUI})
 
-## Copy shaders to the place where the executable is (cmake wizardry)
-# Delete the old shaders folder
+# Add the include directory for STB
+include_directories(${STB})
+
+## Copy assets to the place where the executable is (cmake wizardry)
+# Delete the old assets folder
 add_custom_command(TARGET main POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove_directory
-    $<TARGET_FILE_DIR:main>/shaders)
-# Copy the shaders folder
+    $<TARGET_FILE_DIR:main>/assets)
+# Copy the assets folder
 add_custom_command(TARGET main POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:main>/shaders)
+    ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:main>/assets)

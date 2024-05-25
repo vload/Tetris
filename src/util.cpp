@@ -1,4 +1,4 @@
-#include <util.h>
+#include "util.h"
 
 int random_int(int min, int max) { return rand() % (max - min + 1) + min; };
 
@@ -30,27 +30,3 @@ char* read_file(std::string filename) {
     fclose(file);
     return buffer;
 }
-
-// template <typename T>
-// void print_raw_bits(const std::vector<T>& data) {
-//     // Reinterpret the vector's data as an array of char
-//     const char* rawData = reinterpret_cast<const char*>(data.data());
-
-//     // Calculate the total size in bytes
-//     size_t totalSize = data.size() * sizeof(T);
-
-//     // Print the raw bits
-//     for (size_t i = 0; i < totalSize; ++i) {
-//         if (i % sizeof(T) == 0) {
-//             std::cout << "\n" << i / sizeof(T) << ": ";
-//         } else {
-//             std::cout << " ";
-//         }
-
-//         // std::cout << std::hex << std::setw(2) << std::setfill('0')
-//         //   << static_cast<int>(rawData[i]) << std::dec << " ";
-//         std::cout << (short) rawData[i] << " ";
-//         std::cout << std::flush;
-//     }
-//     std::cout << std::endl;
-// }

@@ -85,7 +85,7 @@ struct TetrisState {
     GLFWwindow* window = nullptr;
     int width = 1100;
     int height = 1100;
-    int block_size = 50;
+    int block_size = 48;
 
     bool should_start_new_game = true;
     bool is_game_over = false;

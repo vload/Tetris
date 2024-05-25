@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Program.h"
+#include "Texture.h"
 // include order matters
-#include "TetrisState.h"
+#include "util.h"
 
 class TetrisGraphics {
    private:
     Program program;
+    Texture block_texture;
     TetrisState& state;
     unsigned int VAO, VBO;
 

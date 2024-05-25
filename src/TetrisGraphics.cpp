@@ -2,8 +2,10 @@
 
 TetrisGraphics::TetrisGraphics(TetrisState& state)
     : state(state),
-      program("shaders/2d_projection.vert", "shaders/dot_to_square.geom",
-              "shaders/static_color.frag") {
+      program("assets/shaders/2d_projection.vert",
+              "assets/shaders/dot_to_square.geom",
+              "assets/shaders/static_color.frag"),
+      block_texture("assets/textures/block.png") {
     // generate vertex array and buffer objects
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -48,6 +50,8 @@ void TetrisGraphics::loop() {
     program.use();
     program.set_uniform("projection", projection);
 
+    // Bind the block texture
+    block_texture.bind();
     // Bind the VAO and VBO
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -59,4 +63,6 @@ void TetrisGraphics::loop() {
     // Unbind the VAO and VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    // Unbind the block texture
+    block_texture.unbind();
 }

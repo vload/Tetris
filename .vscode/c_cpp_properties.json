@@ -9,7 +9,8 @@
                 "${workspaceFolder}/dependencies/glfw/include",
                 "${workspaceFolder}/dependencies/glm",
                 "${workspaceFolder}/dependencies/imgui",
-                "${workspaceFolder}/dependencies/glad/include"
+                "${workspaceFolder}/dependencies/glad/include",
+                "${workspaceFolder}/dependencies/stb"
             ],
             "defines": [
                 "_DEBUG",
