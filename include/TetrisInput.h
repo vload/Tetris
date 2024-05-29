@@ -1,18 +1,36 @@
 #pragma once
 
-#include "util.h"
+#include "WindowContext.h"
 
 class TetrisInput {
+   public:
+    struct KeyStatus {
+        bool pressed;
+        double time_pressed;
+        double prev_x;
+        bool action_needed;
+    };
+
+    const enum TetrisDirections {
+        UP = 0,
+        DOWN = 1,
+        LEFT = 2,
+        RIGHT = 3,
+        _COUNT = 4,
+    };
+
    private:
-    const double delay_after_first_key_press = 0.25;
-    const double repeat_key_delay = 0.05;
-    TetrisState& state;
-    std::array<KeyStatus, TetrisDirections::_COUNT>& keys;
+    WindowContext& window;
+
+    std::array<KeyStatus, TetrisDirections::_COUNT> keys;
 
     bool is_key_pressed(int key);
 
    public:
-    TetrisInput(TetrisState& state);
+    TetrisInput(WindowContext& window);
 
     void loop();
+
+    // getters / setters
+    std::array<KeyStatus, TetrisDirections::_COUNT>& get_keys() { return keys; }
 };

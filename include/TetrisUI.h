@@ -1,14 +1,18 @@
 #pragma once
 
-#include "util.h"
+#include "TetrisBoard.h"
+#include "WindowContext.h"
 
 class TetrisUI {
    private:
-    TetrisState& state;
+    WindowContext& window;
+    TetrisBoard& board;
 
    public:
-    TetrisUI(TetrisState& state);
+    TetrisUI(WindowContext& window, TetrisBoard& board);
     ~TetrisUI();
+
+    void start_frame();
 
     void loop();
 

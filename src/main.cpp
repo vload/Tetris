@@ -1,26 +1,26 @@
-#include "TetrisState.h"
-// order matters
+#include "TetrisBoard.h"
 #include "TetrisGraphics.h"
 #include "TetrisInput.h"
-#include "TetrisLogic.h"
 #include "TetrisUI.h"
 #include "WindowContext.h"
 
 void game() {
-    // Setup the and state and initialize the game
-    TetrisState state;
-    WindowContext window(state);
-    TetrisInput input(state);
-    TetrisLogic logic(state);
-    TetrisGraphics graphics(state);
-    TetrisUI ui(state);
+    // Initialize the game modules
+    // ---------------------------
+    WindowContext window;
+    TetrisInput input(window);
+    TetrisBoard board(window, input);
+    TetrisGraphics graphics(window, board);
+    TetrisUI ui(window, board);
 
     // Render and game loop
     // --------------------
     while (!window.should_close()) {
+        ui.start_frame();
+
         window.loop();
         input.loop();
-        logic.loop();
+        board.loop();
         graphics.loop();
         ui.loop();
     }

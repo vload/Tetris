@@ -1,44 +1,99 @@
-#include "TetrisLogic.h"
+#include "TetrisBoard.h"
 
+#include <algorithm>
 #include <ranges>
 
-TetrisLogic::TetrisLogic(TetrisState& state)
-    : state(state), blocks(state.blocks) {}
+void set_seed() { srand(static_cast<unsigned int>(time(0))); }
+int random_int(int min, int max) { return rand() % (max - min + 1) + min; };
 
-auto TetrisLogic::get_current_piece() {
+constexpr glm::vec2 UPCOMING_PIECE_PREVIEW_POSITION{17, 11};
+constexpr glm::vec2 PIECE_SPAWN_POSTION{7, 0};
+
+constexpr TetrisBoard::block tetrominos[][4] = {
+    {
+        // O
+        {glm::ivec2(0, 0), 1},
+        {glm::ivec2(-1, 0), 1},
+        {glm::ivec2(-1, 1), 1},
+        {glm::ivec2(0, 1), 1},
+    },
+    {
+        // I
+        {glm::ivec2(0, 0), 2},
+        {glm::ivec2(-1, 0), 2},
+        {glm::ivec2(1, 0), 2},
+        {glm::ivec2(-2, 0), 2},
+    },
+    {
+        // T
+        {glm::ivec2(0, 0), 3},
+        {glm::ivec2(-1, 0), 3},
+        {glm::ivec2(1, 0), 3},
+        {glm::ivec2(0, 1), 3},
+    },
+    {
+        // L
+        {glm::ivec2(0, 0), 4},
+        {glm::ivec2(-1, 0), 4},
+        {glm::ivec2(1, 0), 4},
+        {glm::ivec2(-1, 1), 4},
+    },
+    {
+        // J
+        {glm::ivec2(0, 0), 5},
+        {glm::ivec2(-1, 0), 5},
+        {glm::ivec2(1, 0), 5},
+        {glm::ivec2(1, 1), 5},
+    },
+    {
+        // Z
+        {glm::ivec2(0, 0), 6},
+        {glm::ivec2(-1, 0), 6},
+        {glm::ivec2(0, 1), 6},
+        {glm::ivec2(1, 1), 6},
+    },
+    {
+        // S
+        {glm::ivec2(0, 0), 7},
+        {glm::ivec2(1, 0), 7},
+        {glm::ivec2(0, 1), 7},
+        {glm::ivec2(-1, 1), 7},
+    },
+};
+
+auto TetrisBoard::get_current_piece() {
     return blocks | std::views::drop(blocks.size() - 8) | std::views::take(4);
 }
 
-auto TetrisLogic::get_upcoming_piece() {
+auto TetrisBoard::get_upcoming_piece() {
     return blocks | std::views::drop(blocks.size() - 4);
 }
 
-auto TetrisLogic::get_inactive_blocks() {
+auto TetrisBoard::get_inactive_blocks() {
     if (is_piece_locked)
         return blocks | std::views::take(blocks.size() - 4);
     else
         return blocks | std::views::take(blocks.size() - 8);
 }
 
-void TetrisLogic::start_new_game() {
+void TetrisBoard::start_new_game() {
     srand(static_cast<unsigned int>(time(NULL)));
 
     blocks.clear();
     create_boundary_walls();
 
     is_piece_locked = true;
-    state.is_game_over = false;
-    state.should_start_new_game = false;
-    state.score = 0;
-    state.level = 1;
-    state.clears = 0;
+    game_over = false;
+    should_start_new_game = false;
+    score = 0;
+    level = 1;
+    lines_cleared_since_level_start = 0;
 
-    time_of_last_move_down = 0;
+    last_move_down = 0;
     generate_new_upcoming_piece();
-    state.is_scene_dirty = true;
 }
 
-void TetrisLogic::create_boundary_walls() {
+void TetrisBoard::create_boundary_walls() {
     // side walls
     for (int i = -5; i < 20; i++) {
         blocks.push_back({glm::ivec2(1, i), 0});
@@ -50,7 +105,7 @@ void TetrisLogic::create_boundary_walls() {
     }
 }
 
-void TetrisLogic::generate_new_upcoming_piece() {
+void TetrisBoard::generate_new_upcoming_piece() {
     int tetromino_index = random_int(0, 6);
 
     for (int i = 0; i < 4; i++)
@@ -60,13 +115,13 @@ void TetrisLogic::generate_new_upcoming_piece() {
         s.position += UPCOMING_PIECE_PREVIEW_POSITION;
 }
 
-bool TetrisLogic::is_upcoming_piece_playable() {
+bool TetrisBoard::is_upcoming_piece_playable() {
     return !does_movement_collide_with_inactive_blocks(
         get_upcoming_piece().data(),
         PIECE_SPAWN_POSTION - UPCOMING_PIECE_PREVIEW_POSITION);
 }
 
-bool TetrisLogic::does_collide_with_inactive_blocks(const block sq[4]) {
+bool TetrisBoard::does_collide_with_inactive_blocks(const block sq[4]) {
     for (const block& s : get_inactive_blocks()) {
         for (int i = 0; i < 4; i++) {
             if (sq[i].position == s.position) {
@@ -77,7 +132,7 @@ bool TetrisLogic::does_collide_with_inactive_blocks(const block sq[4]) {
     return false;
 }
 
-bool TetrisLogic::does_movement_collide_with_inactive_blocks(const block sq[4],
+bool TetrisBoard::does_movement_collide_with_inactive_blocks(const block sq[4],
                                                              glm::vec2 delta) {
     for (const block& s : get_inactive_blocks()) {
         for (int i = 0; i < 4; i++) {
@@ -89,7 +144,7 @@ bool TetrisLogic::does_movement_collide_with_inactive_blocks(const block sq[4],
     return false;
 }
 
-bool TetrisLogic::move_current_piece_if_possible(glm::vec2 delta) {
+bool TetrisBoard::move_current_piece_if_possible(glm::vec2 delta) {
     if (!does_movement_collide_with_inactive_blocks(get_current_piece().data(),
                                                     delta)) {
         for (block& s : get_current_piece()) {
@@ -100,15 +155,15 @@ bool TetrisLogic::move_current_piece_if_possible(glm::vec2 delta) {
     return false;
 }
 
-void TetrisLogic::place_upcoming_piece() {
+void TetrisBoard::place_upcoming_piece() {
     for (block& s : get_upcoming_piece())
         s.position =
             s.position - UPCOMING_PIECE_PREVIEW_POSITION + PIECE_SPAWN_POSTION;
 }
 
-bool TetrisLogic::place_upcoming_piece_if_possible() {
+bool TetrisBoard::place_upcoming_piece_if_possible(double current_time) {
     if (!is_upcoming_piece_playable()) {
-        state.is_game_over = true;
+        game_over = true;
         return false;
     }
 
@@ -117,41 +172,38 @@ bool TetrisLogic::place_upcoming_piece_if_possible() {
     generate_new_upcoming_piece();
 
     is_piece_locked = false;
-    time_of_last_move_down = state.current_time;
-    state.is_scene_dirty = true;
+    last_move_down = current_time;
 
     return true;
 }
 
-void TetrisLogic::handle_horizontal_movement() {
+void TetrisBoard::handle_horizontal_movement() {
     int move = 0;
-    if (state.keys[TetrisDirections::LEFT].action_needed) {
+    if (input.get_keys()[TetrisInput::TetrisDirections::LEFT].action_needed) {
         move += -1;
     }
-    if (state.keys[TetrisDirections::RIGHT].action_needed) {
+    if (input.get_keys()[TetrisInput::TetrisDirections::RIGHT].action_needed) {
         move += 1;
     }
     if (move != 0) {
         move_current_piece_if_possible(glm::ivec2(move, 0));
-        state.is_scene_dirty = true;
     }
 }
 
-void TetrisLogic::handle_piece_falling() {
+void TetrisBoard::handle_piece_falling(double current_time) {
     // check if tetromino can move down (on delay (gravity) or on key press)
     // try to move it and if it can't be moved, then deactivate it
-    if (state.current_time - time_of_last_move_down > fall_delay ||
-        state.keys[TetrisDirections::DOWN].action_needed) {
+    if (current_time - last_move_down > fall_delay ||
+        input.get_keys()[TetrisInput::TetrisDirections::DOWN].action_needed) {
         if (!move_current_piece_if_possible(glm::ivec2(0, 1)))
             is_piece_locked = true;
 
-        time_of_last_move_down = state.current_time;
-        state.is_scene_dirty = true;
+        last_move_down = current_time;
     }
 }
 
-void TetrisLogic::handle_piece_rotation() {
-    if (state.keys[TetrisDirections::UP].action_needed) {
+void TetrisBoard::handle_piece_rotation() {
+    if (input.get_keys()[TetrisInput::TetrisDirections::UP].action_needed) {
         block sq[4];
         std::copy(get_current_piece().begin(), get_current_piece().end(), sq);
 
@@ -167,32 +219,31 @@ void TetrisLogic::handle_piece_rotation() {
         // check if tetromino can move to new spot and move it
         if (!does_collide_with_inactive_blocks(sq)) {
             std::copy(sq, sq + 4, get_current_piece().begin());
-            state.is_scene_dirty = true;
         }
     }
 }
 
-void TetrisLogic::loop() {
-    state.is_scene_dirty = false;
+void TetrisBoard::loop() {
+    double current_time = glfwGetTime();
 
-    if (state.should_start_new_game) {
+    if (should_start_new_game) {
         start_new_game();
     }
 
     if (is_piece_locked) {
-        if (!place_upcoming_piece_if_possible()) return;
+        if (!place_upcoming_piece_if_possible(current_time)) return;
     }
 
     handle_piece_rotation();
 
     handle_horizontal_movement();
 
-    handle_piece_falling();
+    handle_piece_falling(current_time);
 
     handle_completed_rows();
 }
 
-void TetrisLogic::handle_completed_rows() {
+void TetrisBoard::handle_completed_rows() {
     if (is_piece_locked) {
         // check if any lines are full (only in the play area)
         int count_per_line[20] = {0};
@@ -204,14 +255,14 @@ void TetrisLogic::handle_completed_rows() {
         }
 
         // remove full lines
-        size_t rows_cleared =
-            std::erase_if(blocks,
+        int rows_cleared =
+            static_cast<int>(std::erase_if(blocks,
                           [&](block s) {
                               return s.position.x > 1 && s.position.x < 12 &&
                                      s.position.y > 0 && s.position.y < 20 &&
                                      count_per_line[(int)s.position.y] == 10;
                           }) /
-            10;
+            10);
 
         // calculate how many lines to move the lines down by
         int move_line_down_by[20] = {0};
@@ -230,31 +281,27 @@ void TetrisLogic::handle_completed_rows() {
         }
 
         adjust_score(rows_cleared);
-
-        if (rows_cleared > 0) {
-            state.is_scene_dirty = true;
-        }
     }
 }
 
-void TetrisLogic::adjust_score(size_t rows_cleared) {
+void TetrisBoard::adjust_score(int rows_cleared) {
     static const int points_per_row[6] = {0, 100, 300, 700, 1500, 3100};
     if (rows_cleared == 0) return;
 
     if (rows_cleared == 4) {
-        if (state.previous_clear_was_tetris) {  // back to back tetris
+        if (previous_clear_was_tetris) {  // back to back tetris
             rows_cleared++;
         }
 
-        state.previous_clear_was_tetris = true;
+        previous_clear_was_tetris = true;
     } else {
-        state.previous_clear_was_tetris = false;
+        previous_clear_was_tetris = false;
     }
 
-    state.score += points_per_row[rows_cleared] * state.level;
-    state.clears += rows_cleared;
-    if(state.clears >= 10) {
-        state.level++;
-        state.clears -= 10;
+    score += points_per_row[rows_cleared] * level;
+    lines_cleared_since_level_start += rows_cleared;
+    if (lines_cleared_since_level_start >= 10) {
+        level++;
+        lines_cleared_since_level_start -= 10;
     }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.h"
+#include "WindowContext.h"
 
 class Program {
    private:
@@ -25,8 +25,4 @@ class Program {
     Program(Program&&) = delete;
     Program& operator=(const Program&) = delete;
     Program& operator=(Program&&) = delete;
-
-   private:
-    static unsigned int compile_shader(std::string shader_path,
-                                       unsigned int shader_type);
 };

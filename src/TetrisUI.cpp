@@ -5,7 +5,8 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 
-TetrisUI::TetrisUI(TetrisState& state) : state(state) {
+TetrisUI::TetrisUI(WindowContext& window, TetrisBoard& board)
+    : window(window), board(board) {
     // Setup imgui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -19,10 +20,7 @@ TetrisUI::TetrisUI(TetrisState& state) : state(state) {
     ImGui::StyleColorsDark();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(
-        state.window,
-        true);  // Second param install_callback=true will install
-                // GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(window.get(), true);
     ImGui_ImplOpenGL3_Init();
 }
 
@@ -32,30 +30,32 @@ TetrisUI::~TetrisUI() {
     ImGui::DestroyContext();
 }
 
-void TetrisUI::loop() {
-    // start the ImGui frame
+void TetrisUI::start_frame() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+}
+
+void TetrisUI::loop() {
     // create a transparent window
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::Begin("Tetris", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                      ImGuiWindowFlags_NoBackground);
-    ImGui::SetWindowPos(ImVec2(709, 73), ImGuiCond_Always);
-    ImGui::SetWindowSize(ImVec2(390, 181), ImGuiCond_Always);
+    ImGui::SetWindowPos(ImVec2(700, 100), ImGuiCond_Always);
+    ImGui::SetWindowSize(ImVec2(400, 300), ImGuiCond_Always);
     ImGui::SetWindowFontScale(2);
 
     // imgui menu
     if (ImGui::Button("New Game")) {
-        state.should_start_new_game = true;
+        board.initiate_new_game();
     }
-    if (state.is_game_over) {
+    if (board.is_game_over()) {
         ImGui::Text("Game Over!");
     }
-    ImGui::Text("Score: %d", state.score);
-    ImGui::Text("Level: %d", state.level);
+    ImGui::Text("Score: %d", board.get_score());
+    ImGui::Text("Level: %d", board.get_level());
 
     ImGui::End();
 

@@ -3,18 +3,24 @@
 #include "Program.h"
 #include "Texture.h"
 // include order matters
-#include "util.h"
+#include "TetrisBoard.h"
+#include "WindowContext.h"
 
 class TetrisGraphics {
    private:
-    Program program;
+    WindowContext& window;
+    TetrisBoard& board;
+
+    Program block_program;
     Texture block_texture;
     Texture level_color_texture;
-    TetrisState& state;
     unsigned int VAO, VBO;
 
+    int block_size = 48;
+    glm::mat4 projection;
+
    public:
-    TetrisGraphics(TetrisState& state);
+    TetrisGraphics(WindowContext& window, TetrisBoard& board);
     ~TetrisGraphics();
 
     void loop();
