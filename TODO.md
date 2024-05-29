@@ -18,10 +18,7 @@ texture for block colors per level  ✅
 levels  ✅
 dynamic score ✅
 improve block drawing / block texture ✅
-
-extract GameBoard class
-
-speed up per level
+speed up per level ✅
 
 different textures for different blocks
 
