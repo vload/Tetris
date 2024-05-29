@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <ranges>
 
+#include "settings.h"
+
 void set_seed() { srand(static_cast<unsigned int>(time(0))); }
 int random_int(int min, int max) { return rand() % (max - min + 1) + min; };
 
@@ -88,6 +90,7 @@ void TetrisBoard::start_new_game() {
     score = 0;
     level = 1;
     lines_cleared_since_level_start = 0;
+    fall_delay = 1;
 
     last_move_down = 0;
     generate_new_upcoming_piece();
@@ -255,8 +258,8 @@ void TetrisBoard::handle_completed_rows() {
         }
 
         // remove full lines
-        int rows_cleared =
-            static_cast<int>(std::erase_if(blocks,
+        int rows_cleared = static_cast<int>(
+            std::erase_if(blocks,
                           [&](block s) {
                               return s.position.x > 1 && s.position.x < 12 &&
                                      s.position.y > 0 && s.position.y < 20 &&
@@ -300,8 +303,16 @@ void TetrisBoard::adjust_score(int rows_cleared) {
 
     score += points_per_row[rows_cleared] * level;
     lines_cleared_since_level_start += rows_cleared;
+
+    start_new_level_if_needed();
+}
+
+void TetrisBoard::start_new_level_if_needed() {
     if (lines_cleared_since_level_start >= 10) {
+        level += 4;
         level++;
         lines_cleared_since_level_start -= 10;
+        fall_delay = std::max(MIN_FALL_DELAY,
+                              pow(0.8 - ((level - 1) * 0.007), level - 1));
     }
 }

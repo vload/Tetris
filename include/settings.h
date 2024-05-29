@@ -8,3 +8,6 @@ constexpr int DEFAULT_WINDOW_HEIGHT = 1100;
 // input delay
 constexpr double DELAY_AFTER_FIRST_KEY_PRESS = 0.25;
 constexpr double REPEAT_KEY_DELAY = 0.05;
+
+// fall delay
+constexpr double MIN_FALL_DELAY = 0.05;

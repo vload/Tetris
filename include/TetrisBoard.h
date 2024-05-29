@@ -24,10 +24,11 @@ class TetrisBoard {
     int lines_cleared_since_level_start = 0;
     int score = 0;
     double last_move_down = 0;
-    double fall_delay = 0.5;
+    double fall_delay = 1;
     bool is_piece_locked = false;
 
     void start_new_game();
+    void start_new_level_if_needed();
     void create_boundary_walls();
 
     bool does_collide_with_inactive_blocks(const block sq[4]);
