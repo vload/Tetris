@@ -1,41 +1,40 @@
 #include "TetrisInput.h"
 
-#include "settings.h"
+#include <cmath>
 
-constexpr int TetrisKeyNamesGLFW[TetrisInput::TetrisDirections::_COUNT] = {
-    GLFW_KEY_UP,
-    GLFW_KEY_DOWN,
-    GLFW_KEY_LEFT,
-    GLFW_KEY_RIGHT,
-};
+#include "WindowContext.h"
+
+constexpr double DELAY_AFTER_FIRST_KEY_PRESS = 0.25;
+constexpr double REPEAT_KEY_DELAY = 0.05;
 
 TetrisInput::TetrisInput(WindowContext& window) : window(window) {}
 
-void TetrisInput::loop() {
-    double current_time = window.get_time();
+void TetrisInput::update_key(KeyStatus& key, const double current_time) {
+    key.action_needed = false;
 
-    for (int i = 0; i < TetrisDirections::_COUNT; i++) {
-        keys[i].action_needed = false;
+    if (window.is_key_pressed(key.glfw_key_code) && !key.pressed) {
+        key.time_pressed = current_time;
+        key.action_needed = true;
+        key.repeat_count = -1;
+    }
 
-        if (is_key_pressed(TetrisKeyNamesGLFW[i]) && !keys[i].pressed) {
-            keys[i].time_pressed = current_time;
-            keys[i].action_needed = true;
-            keys[i].prev_x = -1;
-        }
+    key.pressed = window.is_key_pressed(key.glfw_key_code);
 
-        keys[i].pressed = is_key_pressed(TetrisKeyNamesGLFW[i]);
+    const int repeat_count = static_cast<int>(std::floor(
+        (current_time - DELAY_AFTER_FIRST_KEY_PRESS - key.time_pressed) /
+        REPEAT_KEY_DELAY));
 
-        double x = floor((current_time - DELAY_AFTER_FIRST_KEY_PRESS -
-                          keys[i].time_pressed) /
-                         REPEAT_KEY_DELAY);
-
-        if (keys[i].pressed && x > keys[i].prev_x) {
-            keys[i].action_needed = true;
-            keys[i].prev_x = x;
-        }
+    if (key.pressed && repeat_count > key.repeat_count) {
+        key.action_needed = true;
+        key.repeat_count = repeat_count;
     }
 }
 
-bool TetrisInput::is_key_pressed(int key) {
-    return glfwGetKey(window.get(), key) == GLFW_PRESS;
+void TetrisInput::loop() {
+    const double current_time = WindowContext::get_time();
+
+    update_key(keys.up, current_time);
+    update_key(keys.down, current_time);
+    update_key(keys.left, current_time);
+    update_key(keys.right, current_time);
 }

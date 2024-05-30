@@ -1,6 +1,10 @@
 #include "TetrisGraphics.h"
 
 #include "Bind.h"
+#include "TetrisBoard.h"
+#include "WindowContext.h"
+
+constexpr float BLOCK_SIZE = 48.F;
 
 TetrisGraphics::TetrisGraphics(WindowContext& window, TetrisBoard& board)
     : window(window),
@@ -14,43 +18,45 @@ TetrisGraphics::TetrisGraphics(WindowContext& window, TetrisBoard& board)
       level_color_texture("assets/textures/level_colors.png", 1) {
     // Set the projection matrix based on the window size on window size change
     WindowContext::FramebufferSizeCallback projection_callback =
-        [this](GLFWwindow*, int width, int height) {
-            float gridWidth = (float)width / block_size;
-            float gridHeight = (float)height / block_size;
+        [this](GLFWwindow*, int width, int height) { // NOLINT
+            const float gridWidth = static_cast<float>(width) / BLOCK_SIZE;
+            const float gridHeight = static_cast<float>(height) / BLOCK_SIZE;
             projection =
-                glm::ortho(0.0f, gridWidth, gridHeight, 0.0f, 0.0f, 100.0f);
+                glm::ortho(0.F, gridWidth, gridHeight, 0.F, 0.F, 100.F);
         };
     window.add_framebuffer_size_callback(projection_callback);
 
     // Set the attribute pointers for the block buffer
-    auto bb = Bind(block_buffer);
-    block_buffer.add_attribute(0, &block::position);
-    block_buffer.add_attribute(1, &block::type);
+    auto block_bind = Bind(block_buffer);
+    block_buffer.add_attribute(0, &block_t::position);
+    block_buffer.add_attribute(1, &block_t::type);
 
     // Set the attribute pointers for the wall buffer
-    auto bw = Bind(wall_buffer);
+    auto wall_bind = Bind(wall_buffer);
     wall_buffer.add_attribute(0, &wall_vertex::position);
     wall_buffer.add_attribute(1, &wall_vertex::color);
-    wall_buffer.copy_static_data(board.get_wall_vertices());
+    wall_buffer.copy_static_data(TetrisBoard::get_wall_vertices());
+
+    glClearColor(0.F, 0.F, 0.F, 1.F);
 }
 
 void TetrisGraphics::draw_wall() {
-    auto bp = Bind(wall_program);
-    auto bb = Bind(wall_buffer);
+    auto program_bind = Bind(wall_program);
+    auto buffer_bind = Bind(wall_buffer);
 
     // Set the uniforms for the shader
     wall_program.set_uniform("projection", projection);
 
     // Draw the walls
     glDrawArrays(GL_TRIANGLES, 0,
-                 static_cast<GLsizei>(board.get_wall_vertices().size()));
+                 static_cast<GLsizei>(TetrisBoard::get_wall_vertices().size()));
 }
 
 void TetrisGraphics::draw_blocks() {
-    auto bp = Bind(block_program);
-    auto bt0 = Bind(block_texture);
-    auto bt1 = Bind(level_color_texture);
-    auto bb = Bind(block_buffer);
+    auto program_bind = Bind(block_program);
+    auto texture_bind_0 = Bind(block_texture);
+    auto texture_bind_1 = Bind(level_color_texture);
+    auto buffer_bind = Bind(block_buffer);
 
     // Set the texture uniforms
     block_program.set_uniform("block_texture", 0);
@@ -70,7 +76,6 @@ void TetrisGraphics::draw_blocks() {
 void TetrisGraphics::loop() {
     // Rendering
     // ---------------------------------------------------------------------
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     draw_wall();

@@ -1,12 +1,16 @@
 #include "WindowContext.h"
 
-#include "settings.h"
+constexpr const char* DEFAULT_WINDOW_TITLE = "Tetris";
+constexpr int DEFAULT_WINDOW_WIDTH = 1100;
+constexpr int DEFAULT_WINDOW_HEIGHT = 1100;
+constexpr int OPENGL_VERSION_MAJOR = 4;
+constexpr int OPENGL_VERSION_MINOR = 6;
 
 std::vector<WindowContext::FramebufferSizeCallback>
-    framebuffer_size_callback_chain;
+    framebuffer_size_callback_chain;  // NOLINT
 
-static void glfw_error_callback(int error, const char* description) {
-    std::cerr << "GLFW Error " << error << ": " << description << std::endl;
+void glfw_error_callback(int error, const char* description) {
+    std::cerr << "GLFW Error " << error << ": " << description << "\n";
     throw std::runtime_error(description);
 }
 
@@ -14,32 +18,32 @@ WindowContext::WindowContext() {
     glfwSetErrorCallback(glfw_error_callback);
 
     // Initialize GLFW
-    if (!glfwInit()) {
+    if (glfwInit() == 0) {
         throw std::runtime_error("Failed to initialize GLFW");
     }
 
     // Tell GLFW which version of OpenGL to use
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a GLFW window object
     window = glfwCreateWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
-                              DEFAULT_WINDOW_TITLE, 0, NULL);
-    if (window == NULL) {
+                              DEFAULT_WINDOW_TITLE, nullptr, nullptr);
+    if (window == nullptr) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
     }
     glfwMakeContextCurrent(window);
 
     // Initialize GLAD before calling any OpenGL function
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0) {  // NOLINT
         glfwTerminate();
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
     glfwSetFramebufferSizeCallback(
-        window, [](GLFWwindow* window, int width, int height) {
+        window, [](GLFWwindow* window, int width, int height) { // NOLINT
             for (auto& callback : framebuffer_size_callback_chain) {
                 callback(window, width, height);
             }
@@ -75,19 +79,26 @@ void WindowContext::trigger_framebuffer_size_callbacks(int width, int height) {
     }
 }
 
-std::pair<int, int> WindowContext::get_window_size() {
-    int width, height;
+auto WindowContext::get_window_size() -> std::pair<int, int> {
+    int width{};
+    int height{};
     glfwGetFramebufferSize(window, &width, &height);
     return std::make_pair(width, height);
 }
 
-double WindowContext::get_time() { return glfwGetTime(); }
+auto WindowContext::get_time() -> double { return glfwGetTime(); }
 
-bool WindowContext::should_close() { return glfwWindowShouldClose(window); }
+auto WindowContext::should_close() -> bool {
+    return glfwWindowShouldClose(window) != 0;
+}
 
 void WindowContext::add_framebuffer_size_callback(
-    FramebufferSizeCallback callback) {
+    FramebufferSizeCallback& callback) {
     framebuffer_size_callback_chain.push_back(callback);
 
     trigger_framebuffer_size_callbacks();
+}
+
+auto WindowContext::is_key_pressed(int key) -> bool {
+    return glfwGetKey(window, key) == GLFW_PRESS;
 }

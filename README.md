@@ -46,6 +46,8 @@ The binary can be found in the `build\Release` directory if you followed the ins
 - Textured blocks
 - Per level color scheme
 - On-demand rendering to reduce CPU and GPU usage.
+- Levels and speed increase per level.
+- Different rendering for edges.
 
 ## Screenshots
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TETRISUI_H_
+#define TETRISUI_H_
 
 #include "TetrisBoard.h"
 #include "WindowContext.h"
@@ -12,12 +13,14 @@ class TetrisUI {
     TetrisUI(WindowContext& window, TetrisBoard& board);
     ~TetrisUI();
 
-    void start_frame();
+    static void start_frame();
 
     void loop();
 
     TetrisUI(const TetrisUI& other) = delete;
     TetrisUI(TetrisUI&& other) = delete;
-    TetrisUI& operator=(const TetrisUI& other) = delete;
-    TetrisUI& operator=(TetrisUI&& other) noexcept = delete;
+    auto operator=(const TetrisUI& other) -> TetrisUI& = delete;
+    auto operator=(TetrisUI&& other) noexcept -> TetrisUI& = delete;
 };
+
+#endif  // TETRISUI_H_

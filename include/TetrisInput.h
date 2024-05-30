@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TETRISINPUT_H_
+#define TETRISINPUT_H_
 
 #include "WindowContext.h"
 
@@ -7,30 +8,38 @@ class TetrisInput {
     struct KeyStatus {
         bool pressed;
         double time_pressed;
-        double prev_x;
+        int repeat_count;
         bool action_needed;
+        int glfw_key_code;
     };
 
-    const enum TetrisDirections {
-        UP = 0,
-        DOWN = 1,
-        LEFT = 2,
-        RIGHT = 3,
-        _COUNT = 4,
+    struct Keys {
+        KeyStatus up{false, 0, 0, false, GLFW_KEY_UP};
+        KeyStatus down{false, 0, 0, false, GLFW_KEY_DOWN};
+        KeyStatus left{false, 0, 0, false, GLFW_KEY_LEFT};
+        KeyStatus right{false, 0, 0, false, GLFW_KEY_RIGHT};
     };
 
    private:
     WindowContext& window;
 
-    std::array<KeyStatus, TetrisDirections::_COUNT> keys;
+    Keys keys;
 
-    bool is_key_pressed(int key);
+    void update_key(KeyStatus& key, double current_time);
 
    public:
-    TetrisInput(WindowContext& window);
+    explicit TetrisInput(WindowContext& window);
 
     void loop();
 
     // getters / setters
-    std::array<KeyStatus, TetrisDirections::_COUNT>& get_keys() { return keys; }
+    auto get_keys() -> Keys& { return keys; }
+
+    ~TetrisInput() = default;
+    TetrisInput(const TetrisInput&) = delete;
+    auto operator=(const TetrisInput&) -> TetrisInput& = delete;
+    TetrisInput(TetrisInput&&) = delete;
+    auto operator=(TetrisInput&&) -> TetrisInput& = delete;
 };
+
+#endif  // TETRISINPUT_H_

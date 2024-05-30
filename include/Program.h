@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROGRAM_H_
+#define PROGRAM_H_
 
 #include "WindowContext.h"
 
@@ -16,10 +17,12 @@ class Program {
     void unbind();
 
     template <typename T>
-    void set_uniform(std::string, T);
+    void set_uniform(const char* const name, T value); // NOLINT
 
     Program(const Program&) = delete;
     Program(Program&&) = delete;
-    Program& operator=(const Program&) = delete;
-    Program& operator=(Program&&) = delete;
+    auto operator=(const Program&) -> Program& = delete;
+    auto operator=(Program&&) -> Program& = delete;
 };
+
+#endif  // PROGRAM_H_

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WINDOWCONTEXT_H_
+#define WINDOWCONTEXT_H_
 
 // glad and glfw
 #include <glad/glad.h>
@@ -19,12 +20,12 @@
 
 class WindowContext {
    public:
-    typedef std::function<void(GLFWwindow*, int, int)> FramebufferSizeCallback;
+    using FramebufferSizeCallback = std::function<void(GLFWwindow*, int, int)>;
 
    private:
     GLFWwindow* window;
 
-    std::pair<int, int> get_window_size();
+    auto get_window_size() -> std::pair<int, int>;
     void trigger_framebuffer_size_callbacks(int width, int height);
     void trigger_framebuffer_size_callbacks();
 
@@ -35,13 +36,16 @@ class WindowContext {
     void loop();
 
     // getters / setters
-    bool should_close();
-    GLFWwindow* get() { return window; }
-    double get_time();
-    void add_framebuffer_size_callback(FramebufferSizeCallback callback);
+    auto is_key_pressed(int key) -> bool;
+    auto should_close() -> bool;
+    auto get() -> GLFWwindow* { return window; }
+    static auto get_time() -> double;
+    void add_framebuffer_size_callback(FramebufferSizeCallback& callback);
 
     WindowContext(const WindowContext& other) = delete;
     WindowContext(WindowContext&& other) = delete;
-    WindowContext& operator=(const WindowContext& other) = delete;
-    WindowContext& operator=(WindowContext&& other) noexcept = delete;
+    auto operator=(const WindowContext& other) -> WindowContext& = delete;
+    auto operator=(WindowContext&& other) noexcept -> WindowContext& = delete;
 };
+
+#endif  // WINDOWCONTEXT_H_

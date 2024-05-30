@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TETRISGRAPHICS_H_
+#define TETRISGRAPHICS_H_
 
 #include "Program.h"
 #include "Texture.h"
@@ -13,17 +14,16 @@ class TetrisGraphics {
     TetrisBoard& board;
 
     Program block_program;
-    using block = TetrisBoard::block;
-    VertexBuffer<block> block_buffer;
+    using block_t = TetrisBoard::block_t;
+    VertexBuffer<block_t> block_buffer;
     Texture block_texture;
     Texture level_color_texture;
 
     Program wall_program;
-    using wall_vertex = TetrisBoard::wall_vertex;
+    using wall_vertex = TetrisBoard::wall_vertex_t;
     VertexBuffer<wall_vertex> wall_buffer;
 
-    int block_size = 48;
-    glm::mat4 projection;
+    glm::mat4 projection{};
 
     void draw_wall();
     void draw_blocks();
@@ -33,3 +33,5 @@ class TetrisGraphics {
 
     void loop();
 };
+
+#endif  // TETRISGRAPHICS_H_

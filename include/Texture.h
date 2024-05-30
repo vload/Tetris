@@ -1,14 +1,15 @@
-#pragma once
+#ifndef TEXTURE_H_
+#define TEXTURE_H_
 
 #include "WindowContext.h"
 
 class Texture {
    private:
-    unsigned int texture;
+    unsigned int texture{};
     int textureUnit;
 
    public:
-    Texture(const std::string& path, int textureUnit = 0);
+    explicit Texture(const std::string& path, int textureUnit = 0);
     ~Texture();
 
     void bind();
@@ -16,6 +17,8 @@ class Texture {
 
     Texture(const Texture&) = delete;
     Texture(Texture&&) = delete;
-    Texture& operator=(const Texture&) = delete;
-    Texture& operator=(Texture&&) = delete;
+    auto operator=(const Texture&) -> Texture& = delete;
+    auto operator=(Texture&&) -> Texture& = delete;
 };
+
+#endif  // TEXTURE_H_

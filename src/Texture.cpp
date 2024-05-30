@@ -8,17 +8,19 @@
 
 Texture::Texture(const std::string& path, int textureUnit)
     : textureUnit(textureUnit) {
-    int width, height, nrChannels;
+    int width{};
+    int height{};
+    int nrChannels{};
     unsigned char* data =
         stbi_load(path.data(), &width, &height, &nrChannels, 0);
-    if (!data) {
+    if (data == nullptr) {
         throw std::runtime_error("Failed to load texture: " + path);
     }
     // generate the texture
     glGenTextures(1, &texture);
 
     // bind the texture
-    auto tb = Bind(*this);
+    auto texture_bind = Bind(*this);
 
     // enable blocky textures
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -33,12 +35,12 @@ Texture::Texture(const std::string& path, int textureUnit)
 }
 Texture::~Texture() { glDeleteTextures(1, &texture); }
 
-void Texture::bind() {
+void Texture::bind() {  // NOLINT
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, texture);
 }
 
-void Texture::unbind() {
+void Texture::unbind() {  // NOLINT
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);

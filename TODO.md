@@ -19,7 +19,6 @@ levels  ✅
 dynamic score ✅
 improve block drawing / block texture ✅
 speed up per level ✅
-
 different rendering for edges ✅
 
 different textures for different blocks

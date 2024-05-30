@@ -1,25 +1,26 @@
-#pragma once
+#ifndef BIND_H_
+#define BIND_H_
 
 template <class T>
-concept IsBindable = requires(T t) {
-    t.bind();
-    t.unbind();
+concept IsBindable = requires(T object) {
+    object.bind();
+    object.unbind();
 };
 
 template <class T>
     requires IsBindable<T>
 class Bind {
-    bool bound;
     T& object;
 
    public:
-    Bind(T& object) : object(object), bound(true) { object.bind(); }
-    ~Bind() {
-        if (bound) object.unbind();
-    }
+    explicit Bind(T& object) : object(object) { object.bind(); }
+
+    ~Bind() { object.unbind(); }
 
     Bind(const Bind&) = delete;
     Bind(Bind&&) = delete;
-    Bind& operator=(const Bind&) = delete;
-    Bind& operator=(Bind&&) = delete;
+    auto operator=(const Bind&) -> Bind& = delete;
+    auto operator=(Bind&&) -> Bind& = delete;
 };
+
+#endif  // BIND_H_

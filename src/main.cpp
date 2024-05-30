@@ -1,3 +1,6 @@
+#include <exception>
+#include <iostream>
+
 #include "TetrisBoard.h"
 #include "TetrisGraphics.h"
 #include "TetrisInput.h"
@@ -11,26 +14,26 @@ void game() {
     TetrisInput input(window);
     TetrisBoard board(window, input);
     TetrisGraphics graphics(window, board);
-    TetrisUI ui(window, board);
+    TetrisUI user_interface(window, board);
 
     // Render and game loop
     // --------------------
     while (!window.should_close()) {
-        ui.start_frame();
+        TetrisUI::start_frame();
 
         window.loop();
         input.loop();
         board.loop();
         graphics.loop();
-        ui.loop();
+        user_interface.loop();
     }
 }
 
-int main() {
+auto main() -> int {
     try {
         game();
     } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << "\n";
     }
     return 0;
 }
