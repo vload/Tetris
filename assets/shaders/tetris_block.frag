@@ -13,6 +13,8 @@ vec4 get_color(float level, float color_type){
     return texture(level_color_texture, vec2((level * 2.0 + color_type) / 32.0, 0.0), 0);
 }
 
+// use the level_color_texture to determine the color of the block and 
+//     the block_texture to determine which color to use
 void main()
 {
     float r = texture(block_texture, tex_coords).r;

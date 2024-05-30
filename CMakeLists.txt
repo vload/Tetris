@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(
     Tetris
-    VERSION 0.0.2.1
+    VERSION 0.0.2.2
     DESCRIPTION "A simple tetris game written with C++ and OpenGL.")
     
 set(CMAKE_CXX_STANDARD 20)

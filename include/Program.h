@@ -12,14 +12,11 @@ class Program {
             std::string fragment_shader_path);
     ~Program();
 
-    void use();
+    void bind();
+    void unbind();
 
-    void set_uniform(std::string name, int i);
-    void set_uniform(std::string name, glm::ivec2 v);
-    void set_uniform(std::string name, float f);
-    void set_uniform(std::string name, glm::vec2 v);
-    void set_uniform(std::string name, glm::vec4 v);
-    void set_uniform(std::string name, glm::mat4 m);
+    template <typename T>
+    void set_uniform(std::string, T);
 
     Program(const Program&) = delete;
     Program(Program&&) = delete;

@@ -108,34 +108,48 @@ Program::Program(std::string vertex_shader_path,
 
 Program::~Program() { glDeleteProgram(program); }
 
-void Program::use() { glUseProgram(program); }
+void Program::bind() { glUseProgram(program); }
 
+void Program::unbind() { glUseProgram(0); }
+
+template <>
 void Program::set_uniform(std::string name, int i) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniform1i(location, i);
 }
 
+template <>
 void Program::set_uniform(std::string name, float f) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniform1f(location, f);
 }
 
+template <>
 void Program::set_uniform(std::string name, glm::vec2 v) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniform2f(location, v.x, v.y);
 }
 
+template <>
 void Program::set_uniform(std::string name, glm::ivec2 v) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniform2i(location, v.x, v.y);
 }
 
+template <>
 void Program::set_uniform(std::string name, glm::vec4 v) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniform4f(location, v.x, v.y, v.z, v.w);
 }
 
+template <>
 void Program::set_uniform(std::string name, glm::mat4 m) {
     int location = glGetUniformLocation(program, name.c_str());
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(m));
+}
+
+template <typename T>
+void Program::set_uniform(std::string name, T t) {
+    throw std::runtime_error("Unsupported uniform type: " +
+                             std::string(typeid(T).name()));
 }

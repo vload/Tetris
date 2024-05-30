@@ -7,7 +7,12 @@ class TetrisBoard {
    public:
     struct block {
         glm::vec2 position;
-        int32_t type;
+        int type;
+    };
+
+    struct wall_vertex {
+        glm::vec2 position;
+        float color;
     };
 
    private:
@@ -29,7 +34,6 @@ class TetrisBoard {
 
     void start_new_game();
     void start_new_level_if_needed();
-    void create_boundary_walls();
 
     bool does_collide_with_inactive_blocks(const block sq[4]);
     bool does_movement_collide_with_inactive_blocks(const block sq[4],
@@ -59,8 +63,8 @@ class TetrisBoard {
     void loop();
 
     // getters / setters
-    block* get_blocks() { return blocks.data(); }
-    size_t get_blocks_size() { return blocks.size(); }
+    std::vector<block>& get_blocks() { return blocks; }
+    std::vector<wall_vertex>& get_wall_vertices();
     bool is_game_over() { return game_over; }
     int get_level() { return level; }
     int get_score() { return score; }

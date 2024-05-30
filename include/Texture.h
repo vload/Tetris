@@ -2,18 +2,17 @@
 
 #include "WindowContext.h"
 
-class Texture{
+class Texture {
    private:
     unsigned int texture;
+    int textureUnit;
 
    public:
-    Texture(const std::string& path);
+    Texture(const std::string& path, int textureUnit = 0);
     ~Texture();
 
     void bind();
-    void bind(int placeholder);
     void unbind();
-    void unbind(int placeholder);
 
     Texture(const Texture&) = delete;
     Texture(Texture&&) = delete;

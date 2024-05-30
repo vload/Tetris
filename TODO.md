@@ -20,6 +20,8 @@ dynamic score ✅
 improve block drawing / block texture ✅
 speed up per level ✅
 
+different rendering for edges ✅
+
 different textures for different blocks
 
 bumping + better rotation (store all rotations and position).
@@ -28,6 +30,6 @@ WHY DOES block.POSITION WORK WITH FLOAT AND NOT INT???
 
 scoreboard
 
-change imgui settings and font
+change imgui font
 
 animations!

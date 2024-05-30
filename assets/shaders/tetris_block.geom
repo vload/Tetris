@@ -9,6 +9,7 @@ out vec2 tex_coords;
 
 uniform mat4 projection;
 
+// generate a square quad from a single point with the given projection matrix
 void main()
 {
     type = vert_type[0];

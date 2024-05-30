@@ -11,6 +11,17 @@ int random_int(int min, int max) { return rand() % (max - min + 1) + min; };
 constexpr glm::vec2 UPCOMING_PIECE_PREVIEW_POSITION{17, 11};
 constexpr glm::vec2 PIECE_SPAWN_POSTION{7, 0};
 
+std::vector<TetrisBoard::wall_vertex> wall_verices = {
+    {{1.5, 0}, 1.0},     {{12.5, 0}, 1.0},
+    {{1.5, 20.5}, 1.0},  // first triangle
+    {{12.5, 20.5}, 1.0}, {{12.5, 0}, 1.0},
+    {{1.5, 20.5}, 1.0},  // second triangle
+    {{2, 0}, 0.0},       {{12, 0}, 0.0},
+    {{2, 20}, 0.0},  // third triangle
+    {{12, 20}, 0.0},     {{12, 0}, 0.0},
+    {{2, 20}, 0.0},  // fourth triangle
+};
+
 constexpr TetrisBoard::block tetrominos[][4] = {
     {
         // O
@@ -63,6 +74,10 @@ constexpr TetrisBoard::block tetrominos[][4] = {
     },
 };
 
+std::vector<TetrisBoard::wall_vertex>& TetrisBoard::get_wall_vertices() {
+    return wall_verices;
+}
+
 auto TetrisBoard::get_current_piece() {
     return blocks | std::views::drop(blocks.size() - 8) | std::views::take(4);
 }
@@ -82,7 +97,6 @@ void TetrisBoard::start_new_game() {
     srand(static_cast<unsigned int>(time(NULL)));
 
     blocks.clear();
-    create_boundary_walls();
 
     is_piece_locked = true;
     game_over = false;
@@ -96,17 +110,6 @@ void TetrisBoard::start_new_game() {
     generate_new_upcoming_piece();
 }
 
-void TetrisBoard::create_boundary_walls() {
-    // side walls
-    for (int i = -5; i < 20; i++) {
-        blocks.push_back({glm::ivec2(1, i), 0});
-        blocks.push_back({glm::ivec2(12, i), 0});
-    }
-    // bottom wall
-    for (int i = 1; i < 13; i++) {
-        blocks.push_back({glm::ivec2(i, 20), 0});
-    }
-}
 
 void TetrisBoard::generate_new_upcoming_piece() {
     int tetromino_index = random_int(0, 6);
@@ -125,14 +128,7 @@ bool TetrisBoard::is_upcoming_piece_playable() {
 }
 
 bool TetrisBoard::does_collide_with_inactive_blocks(const block sq[4]) {
-    for (const block& s : get_inactive_blocks()) {
-        for (int i = 0; i < 4; i++) {
-            if (sq[i].position == s.position) {
-                return true;
-            }
-        }
-    }
-    return false;
+    return does_movement_collide_with_inactive_blocks(sq, {0, 0});
 }
 
 bool TetrisBoard::does_movement_collide_with_inactive_blocks(const block sq[4],
@@ -142,6 +138,12 @@ bool TetrisBoard::does_movement_collide_with_inactive_blocks(const block sq[4],
             if (sq[i].position + delta == s.position) {
                 return true;
             }
+        }
+    }
+    for (int i = 0; i < 4; i++) {
+        if (sq[i].position.x + delta.x < 2 || sq[i].position.x + delta.x > 11 ||
+            sq[i].position.y + delta.y > 19) {
+            return true;
         }
     }
     return false;
@@ -309,7 +311,6 @@ void TetrisBoard::adjust_score(int rows_cleared) {
 
 void TetrisBoard::start_new_level_if_needed() {
     if (lines_cleared_since_level_start >= 10) {
-        level += 4;
         level++;
         lines_cleared_since_level_start -= 10;
         fall_delay = std::max(MIN_FALL_DELAY,
