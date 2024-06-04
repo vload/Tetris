@@ -1,11 +1,11 @@
 #include <exception>
 #include <iostream>
 
+#include "../VlEngine/WindowContext.h"
 #include "TetrisBoard.h"
 #include "TetrisGraphics.h"
 #include "TetrisInput.h"
 #include "TetrisUI.h"
-#include "WindowContext.h"
 
 void game() {
     // Initialize the game modules

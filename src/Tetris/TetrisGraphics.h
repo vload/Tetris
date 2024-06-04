@@ -1,12 +1,11 @@
 #ifndef TETRISGRAPHICS_H_
 #define TETRISGRAPHICS_H_
 
-#include "Program.h"
-#include "Texture.h"
-// include order matters
+#include "../VlEngine/Program.h"
+#include "../VlEngine/Texture.h"
+#include "../VlEngine/VertexBuffer.h"
+#include "../VlEngine/WindowContext.h"
 #include "TetrisBoard.h"
-#include "VertexBuffer.h"
-#include "WindowContext.h"
 
 class TetrisGraphics {
    private:

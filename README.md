@@ -6,6 +6,7 @@ This is a simple Tetris game made from scratch with C++ and OpenGL for the graph
 - [GLAD](https://glad.dav1d.de/)
 - [GLM](https://github.com/g-truc/glm)
 - [ImGUI](https://github.com/ocornut/imgui)
+- [stb_image](https://github.com/nothings/stb)
 
 ## Installation
 
@@ -22,7 +23,7 @@ git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..
-msbuild Tetris.sln /p:Configuration=Release # change this to your compiler
+msbuild Tetris.sln /p:Configuration=Release
 ```
 
 ## Usage example
@@ -32,8 +33,6 @@ The game is controlled with the following keys:
 - left arrow: move the tetromino to the left
 - right arrow: move the tetromino to the right
 - down arrow: move the tetromino down
-- escape: close the game
-There is also a menu that allows tweaking the certain delays in the game.
 
 The binary can be found in the `build\Release` directory if you followed the installation steps above.
 

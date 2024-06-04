@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "WindowContext.h"
+#include "../VlEngine/WindowContext.h"
 
 constexpr double DELAY_AFTER_FIRST_KEY_PRESS = 0.25;
 constexpr double REPEAT_KEY_DELAY = 0.05;

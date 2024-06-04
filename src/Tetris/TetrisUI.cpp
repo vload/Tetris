@@ -7,8 +7,8 @@
 #include <format>
 #include <string>
 
+#include "../VlEngine/WindowContext.h"
 #include "TetrisBoard.h"
-#include "WindowContext.h"
 
 TetrisUI::TetrisUI(WindowContext& window, TetrisBoard& board)
     : window(window), board(board) {

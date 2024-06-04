@@ -2,9 +2,9 @@
 #define VERTEXBUFFER_H_
 
 #include <iostream>
+#include <span>
 
 #include "Bind.h"
-#include "TetrisBoard.h"
 #include "WindowContext.h"
 
 template <class Vertex>

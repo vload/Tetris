@@ -1,8 +1,8 @@
 #include "TetrisGraphics.h"
 
-#include "Bind.h"
+#include "../VlEngine/Bind.h"
+#include "../VlEngine/WindowContext.h"
 #include "TetrisBoard.h"
-#include "WindowContext.h"
 
 constexpr float BLOCK_SIZE = 48.F;
 

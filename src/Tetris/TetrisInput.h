@@ -1,7 +1,7 @@
 #ifndef TETRISINPUT_H_
 #define TETRISINPUT_H_
 
-#include "WindowContext.h"
+#include "../VlEngine/WindowContext.h"
 
 class TetrisInput {
    public:

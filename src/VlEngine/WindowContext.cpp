@@ -1,5 +1,7 @@
 #include "WindowContext.h"
 
+#include <string>
+
 constexpr const char* DEFAULT_WINDOW_TITLE = "Tetris";
 constexpr int DEFAULT_WINDOW_WIDTH = 1100;
 constexpr int DEFAULT_WINDOW_HEIGHT = 1100;
@@ -10,8 +12,8 @@ std::vector<WindowContext::FramebufferSizeCallback>
     framebuffer_size_callback_chain;  // NOLINT
 
 void glfw_error_callback(int error, const char* description) {
-    std::cerr << "GLFW Error " << error << ": " << description << "\n";
-    throw std::runtime_error(description);
+    throw std::runtime_error("GLFW Error " + std::to_string(error) + ": " +
+                             std::string(description));
 }
 
 WindowContext::WindowContext() {
@@ -43,7 +45,7 @@ WindowContext::WindowContext() {
     }
 
     glfwSetFramebufferSizeCallback(
-        window, [](GLFWwindow* window, int width, int height) { // NOLINT
+        window, [](GLFWwindow* window, int width, int height) {  // NOLINT
             for (auto& callback : framebuffer_size_callback_chain) {
                 callback(window, width, height);
             }

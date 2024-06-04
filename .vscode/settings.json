@@ -15,8 +15,8 @@
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": false,
     "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
-        "readability-else-after-return",
-        "cppcoreguidelines-pro-type-union-access"
+        "readability-else-after-return",          // This is not a problem
+        "cppcoreguidelines-pro-type-union-access" // This is not working properly with glm
     ],
     "files.associations": {
         "algorithm": "cpp",

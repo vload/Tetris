@@ -5,8 +5,8 @@
 #include <random>
 #include <span>
 
+#include "../VlEngine/WindowContext.h"
 #include "TetrisInput.h"
-#include "WindowContext.h"
 
 constexpr int PIECE_TYPE_COUNT = 7;
 

@@ -1,8 +1,8 @@
 #ifndef TETRISUI_H_
 #define TETRISUI_H_
 
+#include "../VlEngine/WindowContext.h"
 #include "TetrisBoard.h"
-#include "WindowContext.h"
 
 class TetrisUI {
    private:
