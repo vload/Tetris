@@ -1,21 +1,40 @@
 #ifndef BIND_H_
 #define BIND_H_
 
-template <class T>
-concept IsBindable = requires(T object) {
-    object.bind();
-    object.unbind();
+#include <tuple>
+#include <utility>
+
+template <class T, class... Args>
+concept IsBindable = requires(T object, Args... args) {
+    object.bind(args...);
+    object.unbind(args...);
 };
 
-template <class T>
-    requires IsBindable<T>
+template <class T, class... Args>
+    requires IsBindable<T, Args...>
 class Bind {
     T& object;
+    std::tuple<Args...> args;
 
    public:
-    explicit Bind(T& object) : object(object) { object.bind(); }
+    explicit Bind(T& object, Args&&... args)
+        : object(object), args(std::forward<Args>(args)...) {
+        std::apply(
+            [&](auto&&... unpackedArgs) {
+                object.bind(
+                    std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+            },
+            this->args);
+    }
 
-    ~Bind() { object.unbind(); }
+    ~Bind() {
+        std::apply(
+            [&](auto&&... unpackedArgs) {
+                object.unbind(
+                    std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+            },
+            args);
+    }
 
     Bind(const Bind&) = delete;
     Bind(Bind&&) = delete;

@@ -1,13 +1,18 @@
 #include "Texture.h"
 
+#include <glad/glad.h>
+
+#include <stdexcept>
+#include <string>
+
 #include "Bind.h"
 
 // stb
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-Texture::Texture(const std::string& path, int textureUnit)
-    : textureUnit(textureUnit) {
+Texture::Texture(const std::string& path, int texture_unit)
+    : texture_unit(texture_unit) {
     int width{};
     int height{};
     int nrChannels{};
@@ -35,13 +40,13 @@ Texture::Texture(const std::string& path, int textureUnit)
 }
 Texture::~Texture() { glDeleteTextures(1, &texture); }
 
-void Texture::bind() {  // NOLINT
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
+void Texture::bind() const {
+    glActiveTexture(GL_TEXTURE0 + texture_unit);
     glBindTexture(GL_TEXTURE_2D, texture);
 }
 
-void Texture::unbind() {  // NOLINT
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
+void Texture::unbind() const {
+    glActiveTexture(GL_TEXTURE0 + texture_unit);
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
 }

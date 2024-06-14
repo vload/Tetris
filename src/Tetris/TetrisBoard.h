@@ -1,11 +1,13 @@
 #ifndef TETRISBOARD_H_
 #define TETRISBOARD_H_
 
+
 #include <chrono>
+#include <glm/glm.hpp>
 #include <random>
 #include <span>
 
-#include "../VlEngine/WindowContext.h"
+#include "../VlEngine/VlEngine.h"
 #include "TetrisInput.h"
 
 constexpr int PIECE_TYPE_COUNT = 7;

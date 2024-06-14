@@ -2,8 +2,12 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <glm/ext/vector_float2.hpp>
 #include <span>
 #include <vector>
+
+#include "../VlEngine/WindowContext.h"
 
 constexpr double MIN_FALL_DELAY = 0.05;
 constexpr glm::vec2 UPCOMING_PIECE_PREVIEW_POSITION{17, 11};
@@ -38,7 +42,7 @@ constexpr std::array<TetrisBoard::wall_vertex_t, 12> wall_verices = {
     TetrisBoard::wall_vertex_t{glm::vec2{2.F, 20.F}, 0.F},
 };
 
-constexpr TetrisBoard::block_t pieces[][4] =  // NOLINT
+constexpr TetrisBoard::block_t pieces[][4] =  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     {
         {
             // O
@@ -284,35 +288,34 @@ void TetrisBoard::handle_completed_rows() {
         for (const auto& block : blocks) {
             // only check blocks in the play area
             if (is_within_play_area(block)) {
-                count_per_line[static_cast<int>(block.position.y)]++;  // NOLINT
+                count_per_line[static_cast<int>(block.position.y)]++;
             }
         }
 
         // remove full lines
         const int rows_cleared = static_cast<int>(
-            std::erase_if(blocks,
-                          [&](const block_t block) {
-                              return is_within_play_area(block) &&
-                                     count_per_line[static_cast<int>(  // NOLINT
-                                         block.position.y)] == PLAY_AREA_WIDTH;
-                          }) /
+            std::erase_if(
+                blocks,
+                [&](const block_t block) {
+                    return is_within_play_area(block) &&
+                           count_per_line[static_cast<int>(block.position.y)] ==
+                               PLAY_AREA_WIDTH;
+                }) /
             PLAY_AREA_WIDTH);
 
         // calculate how many lines to move the lines down by
         std::array<int, PLAY_AREA_HEIGHT> move_line_down_by{0};
         for (int i = BOTTOM_WALL - 1; i >= TOP_WALL; i--) {
-            move_line_down_by[i] =                         // NOLINT
-                move_line_down_by[i + 1] +                 // NOLINT
-                static_cast<int>(count_per_line[i + 1] ==  // NOLINT
-                                 PLAY_AREA_WIDTH);
+            move_line_down_by[i] =
+                move_line_down_by[i + 1] +
+                static_cast<int>(count_per_line[i + 1] == PLAY_AREA_WIDTH);
         }
 
         // move lines down
         for (auto& block : blocks) {
             if (is_within_play_area(block)) {
-                block.position.y +=
-                    static_cast<float>(move_line_down_by[  // NOLINT
-                        static_cast<int>(block.position.y)]);
+                block.position.y += static_cast<float>(
+                    move_line_down_by[static_cast<int>(block.position.y)]);
             }
         }
 
@@ -336,7 +339,7 @@ void TetrisBoard::adjust_score(int rows_cleared) {
         previous_clear_was_tetris = false;
     }
 
-    score += points_per_row[rows_cleared] * level;  // NOLINT
+    score += points_per_row[rows_cleared] * level;
     lines_cleared_since_level_start += rows_cleared;
 
     start_new_level_if_needed();

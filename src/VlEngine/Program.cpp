@@ -3,12 +3,17 @@
 #include <glad/glad.h>
 
 #include <fstream>
-#include <glm/glm.hpp>
+#include <glm/ext/matrix_float2x2.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <span>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 constexpr int MAX_INFO_LOG_LENGTH = 512;
 
@@ -27,40 +32,62 @@ auto read_file(const std::string& file_path) -> std::string {
 auto compile_shader(const std::string& shader_path,
                     unsigned int shader_type) -> unsigned int {
     const std::string shader_source = read_file(shader_path);
-    const unsigned int shader = glCreateShader(shader_type);
-    const char* shader_source_ptr = shader_source.c_str();
-    glShaderSource(shader, 1, &shader_source_ptr, nullptr);
-    glCompileShader(shader);
+    const int shader_source_length = static_cast<int>(shader_source.length());
+    const char* const shader_source_data = shader_source.data();
+    const unsigned int shader_id = glCreateShader(shader_type);
+    glShaderSource(shader_id, 1, &shader_source_data, &shader_source_length);
+    glCompileShader(shader_id);
 
+#ifndef NDEBUG
     int success = 0;
-    std::array<char, MAX_INFO_LOG_LENGTH> info_log{};
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
     if (success == GL_FALSE) {
-        glGetShaderInfoLog(shader, MAX_INFO_LOG_LENGTH, nullptr,
+        int info_log_length = 0;
+        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
+        std::string info_log(info_log_length, 0);
+        glGetShaderInfoLog(shader_id, MAX_INFO_LOG_LENGTH, nullptr,
                            info_log.data());
-        throw std::runtime_error("ERROR::SHADER::" + shader_path +
-                                 "::COMPILATION_FAILED\n" + info_log.data());
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR,
+                             0, GL_DEBUG_SEVERITY_HIGH, info_log_length,
+                             info_log.data());
     }
+#endif
 
-    return shader;
+    return shader_id;
 }
 
-auto link_program(unsigned int program) {
+void link_program(unsigned int program) {
     glLinkProgram(program);
 
+#ifndef NDEBUG
     int success = 0;
-    std::array<char, MAX_INFO_LOG_LENGTH> info_log{};
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (success == GL_FALSE) {
+        int info_log_length = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
+        std::string info_log(info_log_length, 0);
         glGetProgramInfoLog(program, MAX_INFO_LOG_LENGTH, nullptr,
                             info_log.data());
-        throw std::runtime_error("ERROR::SHADER::PROGRAM::LINK_FAILED\n" +
-                                 std::string(info_log.data()));
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR,
+                             0, GL_DEBUG_SEVERITY_HIGH, info_log_length,
+                             info_log.data());
     }
+#endif
 }
 
-Program::Program(const std::string vertex_shader_path,    // NOLINT
-                 const std::string fragment_shader_path)  // NOLINT
+Program::Program(const char* const compute_shader_path)
+    : program(glCreateProgram()) {
+    const unsigned int compute_shader =
+        compile_shader(compute_shader_path, GL_COMPUTE_SHADER);
+
+    glAttachShader(program, compute_shader);
+    link_program(program);
+
+    glDeleteShader(compute_shader);
+}
+
+Program::Program(const char* const vertex_shader_path,
+                 const char* const fragment_shader_path)
     : program(glCreateProgram()) {
     const unsigned int vertex_shader =
         compile_shader(vertex_shader_path, GL_VERTEX_SHADER);
@@ -76,9 +103,9 @@ Program::Program(const std::string vertex_shader_path,    // NOLINT
     glDeleteShader(fragment_shader);
 }
 
-Program::Program(const std::string vertex_shader_path,    // NOLINT
-                 const std::string geometry_shader_path,  // NOLINT
-                 const std::string fragment_shader_path)  // NOLINT
+Program::Program(const char* const vertex_shader_path,
+                 const char* const geometry_shader_path,
+                 const char* const fragment_shader_path)
     : program(glCreateProgram()) {
     const unsigned int vertex_shader =
         compile_shader(vertex_shader_path, GL_VERTEX_SHADER);
@@ -99,42 +126,45 @@ Program::Program(const std::string vertex_shader_path,    // NOLINT
 
 Program::~Program() { glDeleteProgram(program); }
 
-void Program::bind() { glUseProgram(program); }  // NOLINT
+void Program::bind() const { glUseProgram(program); }
 
-void Program::unbind() { glUseProgram(0); }  // NOLINT
+void Program::unbind() const { glUseProgram(0); }
 
-template <>
-void Program::set_uniform(const char* const name, int value) {
+void Program::set_uniform(const char* const name, int value) const {
     int const location = glGetUniformLocation(program, name);
     glUniform1i(location, value);
 }
 
-template <>
-void Program::set_uniform(const char* const name, float value) {
+void Program::set_uniform(const char* const name, float value) const {
     int const location = glGetUniformLocation(program, name);
     glUniform1f(location, value);
 }
 
-template <>
-void Program::set_uniform(const char* const name, glm::vec2 value) {
+void Program::set_uniform(const char* const name, glm::vec2 value) const {
     int const location = glGetUniformLocation(program, name);
     glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
-template <>
-void Program::set_uniform(const char* const name, glm::vec4 value) {
+void Program::set_uniform(const char* const name, glm::vec4 value) const {
     int const location = glGetUniformLocation(program, name);
     glUniform4fv(location, 1, glm::value_ptr(value));
 }
 
-template <>
-void Program::set_uniform(const char* const name, glm::mat4 value) {
+void Program::set_uniform(const char* const name, glm::mat4 value) const {
     int const location = glGetUniformLocation(program, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-template <typename T>
-void Program::set_uniform(const char* const /*name*/, T /*value*/) {
-    throw std::runtime_error("Unsupported uniform type: " +
-                             std::string(typeid(T).name()));
+void Program::set_uniform(const char* const name,
+                          std::span<glm::mat2> value) const {
+    int const location = glGetUniformLocation(program, name);
+    std::vector<float> values(value.size() * 4);
+    for (int i = 0; i < value.size(); i++) {
+        for (int j = 0; j < 4; j++) {
+            values[i * 4 + j] = value[i][j / 2][j % 2];
+        }
+    }
+
+    glUniformMatrix2fv(location, static_cast<GLsizei>(value.size()), GL_FALSE,
+                       values.data());
 }

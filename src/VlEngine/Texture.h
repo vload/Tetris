@@ -6,14 +6,14 @@
 class Texture {
    private:
     unsigned int texture{};
-    int textureUnit;
+    int texture_unit;
 
    public:
-    explicit Texture(const std::string& path, int textureUnit = 0);
+    explicit Texture(const std::string& path, int texture_unit = 0);
     ~Texture();
 
-    void bind();
-    void unbind();
+    void bind() const;
+    void unbind() const;
 
     Texture(const Texture&) = delete;
     Texture(Texture&&) = delete;

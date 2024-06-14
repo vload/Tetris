@@ -7,7 +7,7 @@
 #include "TetrisInput.h"
 #include "TetrisUI.h"
 
-void game() {
+void tetris() {
     // Initialize the game modules
     // ---------------------------
     WindowContext window;
@@ -29,11 +29,15 @@ void game() {
     }
 }
 
-auto main() -> int {
+auto main() -> int {  // NOLINT(bugprone-exception-escape)
     try {
-        game();
+        tetris();
     } catch (const std::exception& e) {
         std::cerr << e.what() << "\n";
+        return -1;
+    } catch (...) {
+        std::cerr << "An unknown error occurred\n";
+        return -1;
     }
     return 0;
 }

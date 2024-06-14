@@ -1,0 +1,117 @@
+#version 430 core
+layout (local_size_x = 1) in;
+
+struct agent {
+    vec2 position;
+    vec2 direction;
+    vec3 color;
+    float padding;
+};
+
+layout(binding = 0) buffer agent_ssbo {
+    agent agents[];
+};
+
+layout (binding = 1, rgba8) readonly uniform image2D input_image;
+
+uniform float step_size;
+uniform float seed;
+
+uniform int sensor_radius;
+uniform float sensor_distance;
+uniform float epsilon;
+uniform mat2 sensor_rotation_matrices[3];
+uniform mat2 move_rotation_matrices[3];
+
+// Fast hash function
+float hash(float x) {
+    x = fract(x * 0.1031);
+    x *= x + 33.33;
+    x *= x + x;
+    return fract(x);
+}
+
+// Generate a random bit (O or 1)
+bool randomBit(float seed) {
+    return floor(hash(seed) * 2.0) == 1.0;
+}
+
+const vec4 masks[2] = vec4[](
+    vec4(1.0, 0.0, 0.0, 0.0),
+    vec4(0.0, 1.0, 0.0, 0.0)
+);
+
+void main(){
+    vec2 position = agents[gl_GlobalInvocationID.x].position;
+    vec2 direction = agents[gl_GlobalInvocationID.x].direction;
+    vec3 color = agents[gl_GlobalInvocationID.x].color;
+    
+    // sense
+    float sensor_values[3];
+    for(int i = 0; i < 3; i++){
+        ivec2 sensor_location = ivec2(position * 550.0 + 550.0 + sensor_rotation_matrices[i] * (direction * sensor_distance));
+        
+        sensor_values[i] = 0.0;
+        for(int j = -sensor_radius; j <= sensor_radius; j++){
+            for(int k = -sensor_radius; k <= sensor_radius; k++){
+                vec4 texel_color = imageLoad(input_image, sensor_location + ivec2(j, k));
+                sensor_values[i] += dot(texel_color.rgb, color);
+            }
+        }
+    }
+
+    // rotate
+    float max_value = 0;
+    float min_value = 1;
+    int max_index = 0;
+    int min_index = 0;
+    for(int i = 1; i < 3; i++){
+        if(sensor_values[i] > max_value){
+            max_value = sensor_values[i];
+            max_index = i;
+        }
+        if(sensor_values[i] < min_value){
+            min_value = sensor_values[i];
+            min_index = i;
+        }
+    }
+
+    if(max_index == 0 && min_index == 2){
+        direction = move_rotation_matrices[0] * direction;
+    } else if(max_index == 2 && min_index == 0){
+        direction = move_rotation_matrices[2] * direction;
+    } else if(min_index == 1 && abs(sensor_values[0] - sensor_values[2]) < epsilon){
+        // random rotation
+        if(randomBit(seed * gl_GlobalInvocationID.x)){
+            direction = move_rotation_matrices[0] * direction;
+        } else {
+            direction = move_rotation_matrices[2] * direction;
+        }
+    } else if(min_index == 1 && max_index == 0){
+        direction = move_rotation_matrices[0] * direction;
+    } else if (min_index == 1 && max_index == 2){
+        direction = move_rotation_matrices[2] * direction;
+    }
+
+    // move
+    position += direction * step_size / 550.0;
+    
+    // bounce from edges
+    if (position.x < -1.0) {
+        position.x = -1.0 + (-1.0 - position.x);
+        direction.x *= -1.0;
+    } else if (position.x > 1.0) {
+        position.x = 1.0 - (position.x - 1.0);
+        direction.x *= -1.0;
+    }
+    if (position.y < -1.0) {
+        position.y = -1.0 + (-1.0 - position.y);
+        direction.y *= -1.0;
+    } else if (position.y > 1.0) {
+        position.y = 1.0 - (position.y - 1.0);
+        direction.y *= -1.0;
+    }
+    
+    agents[gl_GlobalInvocationID.x].position = position;
+    agents[gl_GlobalInvocationID.x].direction = direction;
+}

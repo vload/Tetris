@@ -1,0 +1,36 @@
+#version 430 core
+layout (local_size_x = 32, local_size_y = 32) in;
+
+layout (binding = 0, rgba8) readonly uniform image2D input_image;
+layout (binding = 1, rgba8) writeonly uniform image2D output_image;
+
+uniform int kernel_radius;
+uniform float decay_factor;
+
+void main() {
+    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+
+    int radius = kernel_radius;
+
+    vec3 color = vec3(0.0);
+    int count = 0;
+    for(int i = -kernel_radius; i <= kernel_radius; i++)
+    {
+        for(int j = -kernel_radius; j <= kernel_radius; j++)
+        {
+            ivec2 offset = ivec2(i, j);
+            if(pixelCoords.x + offset.x < 0 || pixelCoords.x + offset.x >= imageSize(input_image).x ||
+               pixelCoords.y + offset.y < 0 || pixelCoords.y + offset.y >= imageSize(input_image).y)
+            {
+                continue;
+            }
+            color = color + imageLoad(input_image, pixelCoords + offset).rgb;
+            count++;
+        }
+    }
+
+
+    color = color / count * decay_factor;
+
+    imageStore(output_image, pixelCoords, vec4(color, 1.0));
+}

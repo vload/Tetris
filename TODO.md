@@ -21,6 +21,8 @@ improve block drawing / block texture ✅
 speed up per level ✅
 different rendering for edges ✅
 
+refactor Texture and Framebuffer
+
 different textures for different blocks
 
 bumping + better rotation (store all rotations and position).

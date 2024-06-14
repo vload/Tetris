@@ -1,15 +1,9 @@
 #ifndef WINDOWCONTEXT_H_
 #define WINDOWCONTEXT_H_
 
-// glad and glfw
 #include <glad/glad.h>
 // This order is important
 #include <GLFW/glfw3.h>
-
-// glm
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 // std
 #include <array>
