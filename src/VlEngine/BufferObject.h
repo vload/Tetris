@@ -5,6 +5,8 @@
 
 #include <span>
 
+#include "Bind.h"
+
 // https://www.khronos.org/opengl/wiki/Buffer_Object
 template <class T>
 class BufferObject {

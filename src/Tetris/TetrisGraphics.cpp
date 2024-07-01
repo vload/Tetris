@@ -19,8 +19,8 @@ TetrisGraphics::TetrisGraphics(WindowContext& window, TetrisBoard& board)
                     "assets/shaders/tetris_block.frag"),
       wall_program("assets/shaders/tetris_wall.vert",
                    "assets/shaders/tetris_wall.frag"),
-      block_texture("assets/textures/block.png", 0),
-      level_color_texture("assets/textures/level_colors.png", 1) {
+      block_texture(GL_TEXTURE_2D, 0),
+      level_color_texture(GL_TEXTURE_2D, 1) {
     WindowContext::FramebufferSizeCallback projection_matrix_callback =
         [this](GLFWwindow*, int width, int height) {
             const float gridWidth = static_cast<float>(width) / BLOCK_SIZE;
@@ -40,6 +40,11 @@ TetrisGraphics::TetrisGraphics(WindowContext& window, TetrisBoard& board)
     wall_buffer.copy_data(TetrisBoard::get_wall_vertices(), GL_STATIC_DRAW);
 
     glClearColor(0.F, 0.F, 0.F, 1.F);
+
+    block_texture.load_image("assets/textures/block.png");
+    level_color_texture.load_image("assets/textures/level_colors.png");
+    block_texture.set_nearest();
+    level_color_texture.set_nearest();
 }
 
 void TetrisGraphics::draw_wall() {

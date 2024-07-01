@@ -20,14 +20,16 @@
 #include "../VlEngine/Bind.h"
 #include "../VlEngine/BufferObject.h"
 #include "../VlEngine/Program.h"
+#include "../VlEngine/Texture.h"
 #include "../VlEngine/VertexArrayObject.h"
 #include "../VlEngine/WindowContext.h"
 
 constexpr bool enable_vsync = true;
-constexpr float pi = std::numbers::pi_v<float>; // NOLINT(readability-identifier-length)
+constexpr float pi =
+    std::numbers::pi_v<float>;  // NOLINT(readability-identifier-length)
 constexpr float min_frame_time = 1 / 144.F;
 constexpr int agent_count = 100000;
-constexpr int simulation_speed = 1;
+constexpr int simulation_speed = 5;
 constexpr int screen_size = 1100;
 constexpr float blur_program_xy_dimensions = 32.F;
 
@@ -40,54 +42,39 @@ struct agent_t {
 
 class FrameBuffer {
    private:
-    unsigned int fbo{};
-    unsigned int texture{};
-    int texture_unit;
+    unsigned int ID{};
+    Texture& texture;
 
    public:
-    explicit FrameBuffer(int texture_unit = 0) : texture_unit(texture_unit) {
-        glGenFramebuffers(1, &fbo);
-        glGenTextures(1, &texture);
+    explicit FrameBuffer(WindowContext& window, Texture& texture)
+        : texture(texture) {
+        texture.set_linear();
+
+        glGenFramebuffers(1, &ID);
+
+        // install callbacks for framebuffer size changes
+        WindowContext::FramebufferSizeCallback framebuffer_size_callback =
+            [this](GLFWwindow* /*window*/, int width, int height) {
+                auto texture_bind = Bind(this->texture);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                             GL_UNSIGNED_BYTE, nullptr);
+            };
+        window.add_framebuffer_size_callback(framebuffer_size_callback);
+
         auto framebuffer_bind = Bind(*this);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_size, screen_size, 0,
-                     GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, texture, 0);
+                               GL_TEXTURE_2D, texture.get(), 0);
     }
-    ~FrameBuffer() {
-        glDeleteTextures(1, &texture);
-        glDeleteFramebuffers(1, &fbo);
-    }
+    ~FrameBuffer() { glDeleteFramebuffers(1, &ID); }
+
     void bind() const {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        texture.bind();
+        glBindFramebuffer(GL_FRAMEBUFFER, ID);
     }
-    void unbind() const {
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glActiveTexture(GL_TEXTURE0);
-    }
+    void unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
-    void bind(GLenum target) const {
-        glBindFramebuffer(target, fbo);
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
-        glBindTexture(GL_TEXTURE_2D, texture);
-    }
-    void unbind(GLenum target) const {
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindFramebuffer(target, 0);
-        glActiveTexture(GL_TEXTURE0);
-    }
-
-    [[nodiscard]] auto get_texture() const -> unsigned int { return texture; }
+    void bind(GLenum target) const { glBindFramebuffer(target, ID); }
+    void unbind(GLenum target) const { glBindFramebuffer(target, 0); }
 
     FrameBuffer(const FrameBuffer&) = delete;
     FrameBuffer(FrameBuffer&&) = delete;
@@ -117,8 +104,10 @@ void slime() {
     Program blur_program("assets/shaders/blur.comp");
     Program think_program("assets/shaders/think.comp");
 
-    FrameBuffer render_frame(0);
-    FrameBuffer blur_frame(1);
+    Texture render_texture(GL_TEXTURE_2D, 0);
+    Texture blur_texture(GL_TEXTURE_2D, 1);
+    FrameBuffer render_frame(window, render_texture);
+    FrameBuffer blur_frame(window, blur_texture);
 
     // setup agent buffer and vertex array object
     VertexArrayObject agent_vao;
@@ -134,9 +123,9 @@ void slime() {
             switch (random_type(random_generator)) {
                 case 0:
                     agents.push_back({
-                        0.F * glm::normalize(
-                                  glm::vec2(random_position(random_generator),
-                                            random_position(random_generator))),
+                        glm::normalize(
+                            glm::vec2(random_position(random_generator),
+                                      random_position(random_generator))),
                         glm::normalize(
                             glm::vec2(random_position(random_generator),
                                       random_position(random_generator))),
@@ -145,9 +134,9 @@ void slime() {
                     break;
                 case 1:
                     agents.push_back({
-                        0.F * glm::normalize(
-                                  glm::vec2(random_position(random_generator),
-                                            random_position(random_generator))),
+                        glm::normalize(
+                            glm::vec2(random_position(random_generator),
+                                      random_position(random_generator))),
                         glm::normalize(
                             glm::vec2(random_position(random_generator),
                                       random_position(random_generator))),
@@ -156,9 +145,9 @@ void slime() {
                     break;
                 case 2:
                     agents.push_back({
-                        0.F * glm::normalize(
-                                  glm::vec2(random_position(random_generator),
-                                            random_position(random_generator))),
+                        glm::normalize(
+                            glm::vec2(random_position(random_generator),
+                                      random_position(random_generator))),
                         glm::normalize(
                             glm::vec2(random_position(random_generator),
                                       random_position(random_generator))),
@@ -171,7 +160,6 @@ void slime() {
         }
         agent_buffer.copy_data(agents, GL_DYNAMIC_COPY);
     }
-
     double last_time = WindowContext::get_time();
 
     // clang-format off
@@ -185,7 +173,7 @@ void slime() {
     float sensor_distance = 9;
     float epsilon = 0.F;
     float sensor_angle = pi / 2.F;
-    float move_angle = pi / 8.F;
+    float move_angle = pi / 4.F;
     // clang-format off
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     // clang-format on
@@ -218,16 +206,11 @@ void slime() {
         /// #1 pass: blur old frame
         {
             auto program_bind = Bind(blur_program);
-            auto render_framebuffer_bind = Bind(render_frame);
-            auto blur_framebuffer_bind = Bind(blur_frame);
+            auto render_texture_bind = Bind(render_texture, GL_READ_ONLY);
+            auto blur_texture_bind = Bind(blur_texture, GL_WRITE_ONLY);
 
-            blur_program.set_uniform("kernel_radius", kernel_radius);
             blur_program.set_uniform("decay_factor", decay_factor);
-
-            glBindImageTexture(0, render_frame.get_texture(), 0, GL_FALSE, 0,
-                               GL_READ_ONLY, GL_RGBA8);
-            glBindImageTexture(1, blur_frame.get_texture(), 0, GL_FALSE, 0,
-                               GL_WRITE_ONLY, GL_RGBA8);
+            blur_program.set_uniform("kernel_radius", kernel_radius);
 
             glDispatchCompute(static_cast<GLint>(std::ceil(
                                   screen_size / blur_program_xy_dimensions)),
@@ -253,7 +236,7 @@ void slime() {
                           std::sin(sensor_angle), std::cos(sensor_angle)),
                 glm::mat2(std::cos(0), -std::sin(0), std::sin(0), std::cos(0)),
                 glm::mat2(std::cos(-sensor_angle), -std::sin(-sensor_angle),
-                          std::sin(-sensor_angle), std::cos(-sensor_angle)),
+                            std::sin(-sensor_angle), std::cos(-sensor_angle)),
             };
             std::array<glm::mat2, 3> move_rotation_matrices = {
                 glm::mat2(std::cos(move_angle), -std::sin(move_angle),
@@ -266,9 +249,7 @@ void slime() {
             auto program_bind = Bind(think_program);
             auto agent_buffer_bind =
                 Bind(agent_buffer, GL_SHADER_STORAGE_BUFFER, 0);
-            auto blur_framebuffer_bind = Bind(blur_frame);
-            glBindImageTexture(1, blur_frame.get_texture(), 0, GL_FALSE, 0,
-                               GL_READ_ONLY, GL_RGBA8);
+            auto blur_texture_bind = Bind(blur_texture, GL_READ_ONLY);
 
             think_program.set_uniform("sensor_rotation_matrices",
                                       sensor_rotation_matrices);
@@ -304,7 +285,6 @@ void slime() {
         // render imgui
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
         if (simulation_count++ % simulation_speed == 0) {
             while (WindowContext::get_time() - last_time < min_frame_time) {
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -314,7 +294,7 @@ void slime() {
     }
 }
 
-auto main() -> int { // NOLINT(bugprone-exception-escape)
+auto main() -> int {  // NOLINT(bugprone-exception-escape)
     try {
         slime();
     } catch (const std::exception& e) {
