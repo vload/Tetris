@@ -60,6 +60,16 @@ class VertexArrayObject {
                               &(((Vertex*)nullptr)->*attribute));  // NOLINT
     }
 
+    template <class Vertex>
+    void add_attribute(BufferObject<Vertex>& vbo, int position,
+                       glm::vec4 Vertex::*attribute) {
+        auto voa_bind = Bind(*this);
+        auto vbo_bind = Bind(vbo, GL_ARRAY_BUFFER);
+        glEnableVertexAttribArray(position);
+        glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              &(((Vertex*)nullptr)->*attribute));  // NOLINT
+    }
+
     VertexArrayObject(const VertexArrayObject&) = delete;
     VertexArrayObject(VertexArrayObject&&) = delete;
     auto operator=(const VertexArrayObject&) -> VertexArrayObject& = delete;

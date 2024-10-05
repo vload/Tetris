@@ -1,0 +1,44 @@
+#version 430 core
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+struct ray {
+    vec3 origin;
+    vec3 direction;
+    ivec2 pixel_coords;
+    // vec2 padding;
+};
+
+layout(binding = 1) buffer ray_ssbo {
+    ray rays[];
+};
+
+uniform int width;
+uniform int height;
+uniform float tanfov;
+uniform vec3 camera_direction;
+uniform vec3 camera_position;
+uniform vec3 camera_right;
+uniform vec3 camera_up;
+
+void main(){
+    int i = int(gl_GlobalInvocationID.x);
+    int j = int(gl_GlobalInvocationID.y);
+
+    if(i >= width || j >= height)
+        return;
+    
+    int ray_id = i * height + j;
+
+    vec3 pixel_direction = camera_direction -
+        (float(i) / width - 0.5f) * 2.f * tanfov * width /
+            height * camera_right -
+        (0.5f - float(j) / height) * 2.f * tanfov * camera_up;
+    
+    ray r;
+    r.origin = camera_position;
+    r.direction = pixel_direction;
+    r.pixel_coords = ivec2(i, j);
+
+    rays[ray_id] = r;
+}

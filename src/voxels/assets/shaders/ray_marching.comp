@@ -1,0 +1,86 @@
+#version 430 core
+
+layout (local_size_x = 32) in;
+
+layout (binding = 0, rgba8) writeonly uniform image2D output_image;
+
+struct ray {
+    vec4 origin;
+    vec4 direction;
+    ivec2 pixel_coords;
+    vec2 padding;
+};
+
+struct voxel {
+    vec4 position;
+    vec4 color;
+};
+
+layout(binding = 1) buffer ray_ssbo {
+    ray rays[];
+};
+
+layout(binding = 2) buffer voxel_ssbo {
+    voxel voxels[];
+};
+
+
+uniform int voxel_count;
+uniform float voxel_size;
+
+float intersect(vec3 origin, vec3 direction, vec3 voxel_pos){
+     // Compute half size of the voxel
+    vec3 half_size = vec3(voxel_size) * 0.5;
+
+    // Calculate min and max bounds of the voxel
+    vec3 voxel_min = voxel_pos - half_size;
+    vec3 voxel_max = voxel_pos + half_size;
+
+    // Calculate t_min and t_max for each axis
+    vec3 t_min = (voxel_min - origin) / direction;
+    vec3 t_max = (voxel_max - origin) / direction;
+
+    // Make sure t_min is the lower value and t_max is the upper value for each axis
+    vec3 tclose = min(t_min, t_max);
+    vec3 tfar = max(t_min, t_max);
+
+    // Find the largest tclose and smallest tfar
+    float t_enter = max(max(tclose.x, tclose.y), tclose.z);
+    float t_exit = min(min(tfar.x, tfar.y), tfar.z);
+
+    // If the ray intersects the voxel, t_enter should be less than t_exit and greater than zero
+    if (t_enter < t_exit && t_exit > 0.0) {
+        // Return the t value where the ray enters the voxel
+        return t_enter;
+    }
+
+    // No intersection
+    return -1.0;
+}
+
+void main(){
+    int ray_id = int(gl_GlobalInvocationID.x);
+
+    vec3 origin = rays[ray_id].origin.xyz;
+    vec3 direction = rays[ray_id].direction.xyz;
+    ivec2 pixel_coords = rays[ray_id].pixel_coords;
+
+    float min_distance = 10000;
+    vec4 min_color = vec4(0.0f); 
+    
+    for(int i = 0; i < voxel_count; i++){
+        float dist = intersect(origin, direction, voxels[i].position.xyz);
+
+        if(dist > 0 && dist < min_distance){
+            min_color = voxels[i].color;
+            min_distance = dist;
+        }
+    }
+
+    imageStore(output_image, pixel_coords, min_color);
+    
+    // imageStore(output_image, pixel_coords, vec4(voxels[ray_id % 5].color, 1.0));
+
+    // imageStore(output_image, pixel_coords, vec4(direction, 1.0));
+    // imageStore(output_image, {50, 50}, vec4(1.0, 1.0, 1.0, 1.0));
+}

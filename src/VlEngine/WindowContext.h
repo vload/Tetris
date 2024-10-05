@@ -12,19 +12,22 @@
 #include <string>
 #include <vector>
 
+#include "Events/EventBus.h"
+
 class WindowContext {
    public:
     using FramebufferSizeCallback = std::function<void(GLFWwindow*, int, int)>;
 
+    auto get_window_size() -> std::pair<int, int>;
    private:
     GLFWwindow* window;
 
-    auto get_window_size() -> std::pair<int, int>;
     void trigger_framebuffer_size_callbacks(int width, int height);
     void trigger_framebuffer_size_callbacks();
 
    public:
     WindowContext();
+    WindowContext(EventBus& event_bus, int width, int height);
     ~WindowContext();
 
     void loop();

@@ -38,6 +38,11 @@ class BufferObject {
                      usage);
     }
 
+    void allocate(int count, GLenum usage) const {
+        auto copy_buffer_bind = Bind(*this, GL_COPY_WRITE_BUFFER);
+        glBufferData(GL_COPY_WRITE_BUFFER, count * sizeof(T), nullptr, usage);
+    }
+
     BufferObject(const BufferObject&) = delete;
     BufferObject(BufferObject&&) = delete;
     auto operator=(const BufferObject&) -> BufferObject& = delete;

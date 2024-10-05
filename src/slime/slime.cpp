@@ -19,6 +19,7 @@
 
 #include "../VlEngine/Bind.h"
 #include "../VlEngine/BufferObject.h"
+#include "../VlEngine/FrameBuffer.h"
 #include "../VlEngine/Program.h"
 #include "../VlEngine/Texture.h"
 #include "../VlEngine/VertexArrayObject.h"
@@ -30,7 +31,7 @@ constexpr float pi =
 constexpr float min_frame_time = 1 / 144.F;
 constexpr int agent_count = 100000;
 constexpr int simulation_speed = 5;
-constexpr int screen_size = 1100;
+constexpr int default_screen_size = 1100;
 constexpr float blur_program_xy_dimensions = 32.F;
 
 struct agent_t {
@@ -40,50 +41,16 @@ struct agent_t {
     float padding;
 };
 
-class FrameBuffer {
-   private:
-    unsigned int ID{};
-    Texture& texture;
-
-   public:
-    explicit FrameBuffer(WindowContext& window, Texture& texture)
-        : texture(texture) {
-        texture.set_linear();
-
-        glGenFramebuffers(1, &ID);
-
-        // install callbacks for framebuffer size changes
-        WindowContext::FramebufferSizeCallback framebuffer_size_callback =
-            [this](GLFWwindow* /*window*/, int width, int height) {
-                auto texture_bind = Bind(this->texture);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                             GL_UNSIGNED_BYTE, nullptr);
-            };
-        window.add_framebuffer_size_callback(framebuffer_size_callback);
-
-        auto framebuffer_bind = Bind(*this);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, texture.get(), 0);
-    }
-    ~FrameBuffer() { glDeleteFramebuffers(1, &ID); }
-
-    void bind() const {
-        texture.bind();
-        glBindFramebuffer(GL_FRAMEBUFFER, ID);
-    }
-    void unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
-
-    void bind(GLenum target) const { glBindFramebuffer(target, ID); }
-    void unbind(GLenum target) const { glBindFramebuffer(target, 0); }
-
-    FrameBuffer(const FrameBuffer&) = delete;
-    FrameBuffer(FrameBuffer&&) = delete;
-    auto operator=(const FrameBuffer&) -> FrameBuffer& = delete;
-    auto operator=(FrameBuffer&&) -> FrameBuffer& = delete;
-};
-
 void slime() {
-    WindowContext window;
+    EventBus event_bus;
+    WindowContext window(event_bus, default_screen_size, default_screen_size);
+
+    auto [width, height] = window.get_window_size();
+    event_bus.subscribe<WindowResizeEvent>(
+        [&width, &height](WindowResizeEvent event) {
+            width = event.width;
+            height = event.height;
+        });
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -106,8 +73,8 @@ void slime() {
 
     Texture render_texture(GL_TEXTURE_2D, 0);
     Texture blur_texture(GL_TEXTURE_2D, 1);
-    FrameBuffer render_frame(window, render_texture);
-    FrameBuffer blur_frame(window, blur_texture);
+    FrameBuffer render_frame(event_bus, render_texture);
+    FrameBuffer blur_frame(event_bus, blur_texture);
 
     // setup agent buffer and vertex array object
     VertexArrayObject agent_vao;
@@ -183,6 +150,7 @@ void slime() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         window.loop();
+        event_bus.dispatch();
 
         ImGui::Begin("Slime");
         // clang-format off
@@ -213,10 +181,11 @@ void slime() {
             blur_program.set_uniform("kernel_radius", kernel_radius);
 
             glDispatchCompute(static_cast<GLint>(std::ceil(
-                                  screen_size / blur_program_xy_dimensions)),
+                                  width / blur_program_xy_dimensions)),
                               static_cast<GLint>(std::ceil(
-                                  screen_size / blur_program_xy_dimensions)),
+                                  height / blur_program_xy_dimensions)),
                               1);
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
         }
 
         /// #2 pass: copy blurred frame to render buffer
@@ -225,8 +194,8 @@ void slime() {
             auto render_framebuffer_bind =
                 Bind(render_frame, GL_DRAW_FRAMEBUFFER);
 
-            glBlitFramebuffer(0, 0, screen_size, screen_size, 0, 0, screen_size,
-                              screen_size, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+                              GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
 
         /// #3 pass: update agents
@@ -236,7 +205,7 @@ void slime() {
                           std::sin(sensor_angle), std::cos(sensor_angle)),
                 glm::mat2(std::cos(0), -std::sin(0), std::sin(0), std::cos(0)),
                 glm::mat2(std::cos(-sensor_angle), -std::sin(-sensor_angle),
-                            std::sin(-sensor_angle), std::cos(-sensor_angle)),
+                          std::sin(-sensor_angle), std::cos(-sensor_angle)),
             };
             std::array<glm::mat2, 3> move_rotation_matrices = {
                 glm::mat2(std::cos(move_angle), -std::sin(move_angle),
@@ -263,6 +232,7 @@ void slime() {
                                       random_position(random_generator));
 
             glDispatchCompute(static_cast<GLint>(std::ceil(agent_count)), 1, 1);
+            glMemoryBarrier(GL_ALL_BARRIER_BITS);
         }
 
         /// #4 pass: render agents
@@ -278,8 +248,8 @@ void slime() {
         /// #5 pass: draw to screen
         {
             auto framebuffer_bind = Bind(blur_frame, GL_READ_FRAMEBUFFER);
-            glBlitFramebuffer(0, 0, screen_size, screen_size, 0, 0, screen_size,
-                              screen_size, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+                              GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
 
         // render imgui

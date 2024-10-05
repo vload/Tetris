@@ -145,6 +145,11 @@ void Program::set_uniform(const char* const name, glm::vec2 value) const {
     glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
+void Program::set_uniform(const char* const name, glm::vec3 value) const {
+    int const location = glGetUniformLocation(program, name);
+    glUniform3fv(location, 1, glm::value_ptr(value));
+}
+
 void Program::set_uniform(const char* const name, glm::vec4 value) const {
     int const location = glGetUniformLocation(program, name);
     glUniform4fv(location, 1, glm::value_ptr(value));
