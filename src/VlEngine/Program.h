@@ -25,6 +25,7 @@ class Program {
     void set_uniform(const char* name, glm::vec2 value) const;
     void set_uniform(const char* name, glm::vec3 value) const;
     void set_uniform(const char* name, glm::vec4 value) const;
+    void set_uniform(const char* name, glm::ivec3 value) const;
     void set_uniform(const char* name, glm::mat4 value) const;
     void set_uniform(const char* name, std::span<glm::mat2> value) const;
 

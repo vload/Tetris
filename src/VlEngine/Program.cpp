@@ -155,6 +155,11 @@ void Program::set_uniform(const char* const name, glm::vec4 value) const {
     glUniform4fv(location, 1, glm::value_ptr(value));
 }
 
+void Program::set_uniform(const char* name, glm::ivec3 value) const {
+    int const location = glGetUniformLocation(program, name);
+    glUniform3iv(location, 1, glm::value_ptr(value));
+}
+
 void Program::set_uniform(const char* const name, glm::mat4 value) const {
     int const location = glGetUniformLocation(program, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));

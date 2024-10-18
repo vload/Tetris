@@ -32,16 +32,16 @@
 #include "../VlEngine/WindowContext.h"
 
 constexpr int terrain_size = 2;
-constexpr int sphere_radius = 12;
+constexpr int sphere_radius = 100;
 constexpr float voxel_size = 1.0f;
-constexpr float camera_speed = 20.0f;
+constexpr float camera_speed = 100.0f;
 constexpr float sensitivity = 0.1f;
 constexpr float fov = glm::radians(45.0f);
 constexpr int ray_program_x_dim = 32;
+constexpr glm::ivec3 world_size{256, 256, 256};
 
 struct alignas(16) voxel_t {
-    alignas(16) glm::vec3 position;
-    alignas(16) glm::vec3 color;
+    alignas(16) glm::vec4 color_exists{0, 0, 0, 0};
 };
 
 struct alignas(16) ray_t {
@@ -69,6 +69,7 @@ class Timer {
 glm::vec3 camera_position{0.1f, 0.1f, 5.1f};
 glm::vec3 camera_direction{0, 0, 0};
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3 sun_direction = glm::vec3(2.0f, 1.0f, 3.0f);
 double last_time = WindowContext::get_time();
 double pitch = 0;
 double yaw = -56.0f;
@@ -114,7 +115,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 void voxels() {
     EventBus event_bus;
-
     WindowContext window(event_bus, 1280, 720);
 
     // glfwSetInputMode(window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -129,7 +129,9 @@ void voxels() {
     std::mt19937 random_generator = std::mt19937(static_cast<unsigned int>(
         std::chrono::system_clock::now().time_since_epoch().count()));
     std::uniform_int_distribution<int> random_int =
-        std::uniform_int_distribution<int>(0, 2);
+        std::uniform_int_distribution<int>(0, std::numeric_limits<int>::max());
+    std::uniform_real_distribution<float> random_color =
+        std::uniform_real_distribution<float>(0.F, 1.F);
 
     Program voxel_program("assets/shaders/voxels.vert",
                           "assets/shaders/voxels.geom",
@@ -157,30 +159,60 @@ void voxels() {
         });
 
     // generate and copy agent data to buffer
-    std::vector<voxel_t> voxels;
     int voxel_count = 0;
     {
-        for (int i = -sphere_radius; i <= sphere_radius; i++) {
-            for (int j = -sphere_radius; j <= sphere_radius; j++) {
-                for (int k = -sphere_radius; k <= sphere_radius; k++) {
-                    if (i * i + j * j + k * k < sphere_radius * sphere_radius) {
-                        glm::vec3 color{
-                            (float)(i + sphere_radius) / sphere_radius / 2,
-                            (float)(j + sphere_radius) / sphere_radius / 2,
-                            (float)(k + sphere_radius) / sphere_radius / 2,
-                        };
+        std::vector<voxel_t> voxels(world_size.x * world_size.y * world_size.z);
+        // for (int i = 0; i < world_size.x; i++) {
+        //     for (int j = 0; j < world_size.z; j++) {
+        //         // random int from 10 to 12
+        //         int max_k = /*random_int(random_generator) % 3*/ +10;
+        //         for (int k = 0; k <= max_k; k++) {
+        //             // if (i * i + j * j + k * k < sphere_radius *
+        //             // sphere_radius) {
+        //             // glm::vec3 color{
+        //             //     (float)(i + sphere_radius) / sphere_radius / 2,
+        //             //     (float)(j + sphere_radius) / sphere_radius / 2,
+        //             //     (float)(k + sphere_radius) / sphere_radius / 2,
+        //             // };
 
-                        voxels.push_back(voxel_t{
-                            {i * voxel_size, k * voxel_size, j * voxel_size},
-                            color});
+        //             // // random color
+        //             // glm::vec3 color{
+        //             //     0.0f, 1.0f / 3 + random_color(random_generator) /
+        //             3,
+        //             //     0.0f};
+        //             // white
+        //             glm::vec3 color{1.0f, 1.0f, 1.0f};
 
-                        voxel_count++;
-                    }
-                }
-            }
+        //             // if ((i + j + k + 128 * 3) % 2 == 1) {
+        //             //     color /= 2;
+        //             // }
+
+        //             // voxels[(i + 128) * 256 * 256 + (k + 128) * 256 +
+        //             //        (j + 128)] = voxel_t{glm::vec4(color, 1)};
+        //             // fix this
+        //             voxels[i * world_size.y * world_size.z + k * world_size.z
+        //             +
+        //                    j] = voxel_t{glm::vec4(color, 1)};
+
+        //             voxel_count++;
+        //         }
+        //     }
+        // }
+
+        // // generate 5 random voxels just on top of the terrain y = 6
+        for (int i = 0; i < 333333; i++) {
+            int x = random_int(random_generator) % world_size.x;
+            int y = random_int(random_generator) % world_size.z;
+            int z = random_int(random_generator) % world_size.z;
+            voxels[x * world_size.y * world_size.z + y * world_size.z + z] =
+                voxel_t{glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+            voxel_count++;
         }
-        voxel_buffer.copy_data(voxels, GL_DYNAMIC_COPY);
+
+        voxel_buffer.copy_data(voxels, GL_STATIC_COPY);
         std::cout << voxel_count << std::endl;
+        std::cout << "Size of voxel buffer: " << voxels.size() * sizeof(voxel_t)
+                  << " bytes" << std::endl;
     }
 
     glfwSetCursorPosCallback(window.get(), mouse_callback);
@@ -221,9 +253,9 @@ void voxels() {
         if (total_frame_time > 1 / 60.0) {
             ImGui::Text("TOO SLOW!");
         }
-        // ImGui::Text("x: %f", camera_position.x);
-        // ImGui::Text("y: %f", camera_position.y);
-        // ImGui::Text("z: %f", camera_position.z);
+        ImGui::Text("x: %f", camera_position.x);
+        ImGui::Text("y: %f", camera_position.y);
+        ImGui::Text("z: %f", camera_position.z);
         // clang-format off
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
         // clang-format on
@@ -231,6 +263,9 @@ void voxels() {
 
         double delta_time = WindowContext::get_time() - last_time;
         last_time = delta_time + last_time;
+
+        // sun_direction =
+        // glm::vec3(10.0f * cos(last_time), 10.0f * sin(last_time), 1.0f);
 
         // process input for camera movement
         {
@@ -299,8 +334,8 @@ void voxels() {
                 Bind(voxel_buffer, GL_SHADER_STORAGE_BUFFER, 2);
             auto render_texture_bind = Bind(render_texture, GL_WRITE_ONLY);
 
-            ray_marching_program.set_uniform("voxel_count", voxel_count);
-            ray_marching_program.set_uniform("voxel_size", voxel_size);
+            ray_marching_program.set_uniform("world_size", world_size);
+            ray_marching_program.set_uniform("sun_direction", sun_direction);
 
             glDispatchCompute(static_cast<GLint>(std::ceil(
                                   (float)width * height / ray_program_x_dim)),

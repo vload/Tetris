@@ -5,14 +5,12 @@ layout (local_size_x = 32) in;
 layout (binding = 0, rgba8) writeonly uniform image2D output_image;
 
 struct ray {
-    vec4 origin;
-    vec4 direction;
+    vec3 origin;
+    vec3 direction;
     ivec2 pixel_coords;
-    vec2 padding;
 };
 
 struct voxel {
-    vec4 position;
     vec4 color;
 };
 
@@ -20,67 +18,112 @@ layout(binding = 1) buffer ray_ssbo {
     ray rays[];
 };
 
+// voxel.w means it exists
 layout(binding = 2) buffer voxel_ssbo {
     voxel voxels[];
 };
 
+uniform ivec3 world_size;
+uniform vec3 sun_direction;
 
-uniform int voxel_count;
-uniform float voxel_size;
+const float epsilon = 1e-4;
 
-float intersect(vec3 origin, vec3 direction, vec3 voxel_pos){
-     // Compute half size of the voxel
-    vec3 half_size = vec3(voxel_size) * 0.5;
+struct hit {
+    bool hit;
+    vec3 position;
+    vec3 normal;
+    vec3 color;
+};
 
-    // Calculate min and max bounds of the voxel
-    vec3 voxel_min = voxel_pos - half_size;
-    vec3 voxel_max = voxel_pos + half_size;
+hit intersect_with_voxel(ray r){
+    vec3 origin = r.origin;
+    vec3 direction = r.direction;
 
-    // Calculate t_min and t_max for each axis
-    vec3 t_min = (voxel_min - origin) / direction;
-    vec3 t_max = (voxel_max - origin) / direction;
+    vec3 color = vec3(0.0f);
 
-    // Make sure t_min is the lower value and t_max is the upper value for each axis
-    vec3 tclose = min(t_min, t_max);
-    vec3 tfar = max(t_min, t_max);
+    ivec3 origin_floor = ivec3(floor(origin));
+    ivec3 direction_sign = ivec3(sign(direction)); // step
 
-    // Find the largest tclose and smallest tfar
-    float t_enter = max(max(tclose.x, tclose.y), tclose.z);
-    float t_exit = min(min(tfar.x, tfar.y), tfar.z);
+    vec3 t_delta = abs(1 / direction);
+    vec3 planes = origin_floor + (direction_sign + 1) / 2;
+    vec3 t_max = (planes - origin) / direction;
+    ivec3 target = origin_floor;
 
-    // If the ray intersects the voxel, t_enter should be less than t_exit and greater than zero
-    if (t_enter < t_exit && t_exit > 0.0) {
-        // Return the t value where the ray enters the voxel
-        return t_enter;
+    bool been_inside = false;
+
+    int iterations = 0;
+    while(iterations < 5000){
+        float t_min = min(min(t_max.x, t_max.y), t_max.z);
+        vec3 normal = vec3(0.0f);
+
+        if (t_min == t_max.x) {  
+            t_max.x += t_delta.x;
+            target.x += direction_sign.x;
+            normal.x = -direction_sign.x;
+        }
+        else if(t_min == t_max.y){
+            t_max.y += t_delta.y; 
+            target.y += direction_sign.y;
+            normal.y = -direction_sign.y;
+        }
+        else{
+            t_max.z += t_delta.z;
+            target.z += direction_sign.z;
+            normal.z = -direction_sign.z;
+        }
+
+        if(target.x >= 0 && target.x < world_size.x && target.y >= 0 && target.y < world_size.y && target.z >= 0 && target.z < world_size.z){
+            int voxel_id = target.x + world_size.x * target.y + world_size.x * world_size.y * target.z;
+            been_inside = true; 
+    
+            if(voxels[voxel_id].color.w != 0){
+                // normal is axis alligned. we can just use the direction sign and the axis
+                vec3 hit_position = origin + t_min * direction;
+
+                return hit(true, hit_position, normal, voxels[voxel_id].color.xyz);
+            }
+        } else if(been_inside){
+            break;
+        }
+
+        iterations ++;
     }
 
-    // No intersection
-    return -1.0;
+    return hit(false, vec3(0.0f), vec3(0.0f), vec3(0.0f));
 }
 
 void main(){
     int ray_id = int(gl_GlobalInvocationID.x);
+    ivec2 pixel_coords = ivec2(rays[ray_id].pixel_coords);
 
-    vec3 origin = rays[ray_id].origin.xyz;
-    vec3 direction = rays[ray_id].direction.xyz;
-    ivec2 pixel_coords = rays[ray_id].pixel_coords;
+    hit primary_hit = intersect_with_voxel(rays[ray_id]);
 
-    float min_distance = 10000;
-    vec4 min_color = vec4(0.0f); 
+    vec3 shadow_ray_direction = normalize(sun_direction);
     
-    for(int i = 0; i < voxel_count; i++){
-        float dist = intersect(origin, direction, voxels[i].position.xyz);
-
-        if(dist > 0 && dist < min_distance){
-            min_color = voxels[i].color;
-            min_distance = dist;
-        }
+    hit shadow_hit;
+    // check if shadow_ray_direction and normal are in the same direction
+    if(dot(primary_hit.normal, shadow_ray_direction) > 0.0f){    
+        ray shadow_ray = ray(
+            primary_hit.position + shadow_ray_direction * epsilon, 
+            shadow_ray_direction, 
+            pixel_coords);
+        
+        shadow_hit = intersect_with_voxel(shadow_ray);
+    }
+    else{
+        shadow_hit = hit(true, vec3(0.0f), vec3(0.0f), vec3(0.0f));
     }
 
-    imageStore(output_image, pixel_coords, min_color);
-    
-    // imageStore(output_image, pixel_coords, vec4(voxels[ray_id % 5].color, 1.0));
 
-    // imageStore(output_image, pixel_coords, vec4(direction, 1.0));
-    // imageStore(output_image, {50, 50}, vec4(1.0, 1.0, 1.0, 1.0));
+    if(primary_hit.hit){
+        vec3 color = primary_hit.color;
+
+        if(shadow_hit.hit){
+            color *= 0.5f;
+        }
+
+        imageStore(output_image, pixel_coords, vec4(color, 1.0f));
+    } else {
+        imageStore(output_image, pixel_coords, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    }
 }
